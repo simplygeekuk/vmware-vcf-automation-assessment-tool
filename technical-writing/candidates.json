@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "standard": {
+    "issue": 9,
+    "name": "ASD-STE100"
+  },
+  "candidates": [],
+  "notes": "Rescan of 2026-09-22 after the rename to VCF Automation read README.md only (specs/001-placement-resolution/ was deleted in the working tree). All 43 candidates were approved the same day and moved to terms.json. Kept out by triage: 24 ordinary engineering words, 12 exact labels, and the approved-core words group, input, collect, expand and deploy. render, purge and order have core alternatives (make, remove, sequence) and were not queued.",
+  "last_scan": {
+    "date": "2026-09-22",
+    "files": {
+      "README.md": "4625fb1eccc298da8085a5d3913aec1e067c59c7631a6c651b726939663c81e0"
+    }
+  }
+}

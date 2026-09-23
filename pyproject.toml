@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vcf-automation-assessment-tool"
+version = "1.0.0"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE.md"]
+classifiers = ["Development Status :: 5 - Production/Stable"]
+description = "Assessment tool for VMware VCF Automation 8.x: estate health, hygiene and complexity"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "pyflakes>=3.2",
+    "esprima>=4.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+vcf-automation-assessment-tool = "vcf_automation_assessment_tool.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vcf_automation_assessment_tool = ["report/templates/*.j2", "report/static/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["src/vcf_automation_assessment_tool/report/static"]
+
+[tool.ruff.lint]
+# E/W pycodestyle, F pyflakes, I import order, B bugbear, UP pyupgrade
+select = ["E", "W", "F", "I", "B", "UP"]

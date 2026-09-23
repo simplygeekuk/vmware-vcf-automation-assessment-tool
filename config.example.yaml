@@ -1,0 +1,141 @@
+# vcf-automation-assessment-tool configuration. Copy to config.yaml (picked
+# up automatically) or pass with --config PATH. CLI flags and VCF_*
+# environment variables override values here.
+#
+# Only url and one credential are required. Every other key below is
+# commented out at its default value, so uncomment only what you change.
+
+
+# ---------------------------------------------------------------- Connection
+
+url: https://vra.example.com
+username: example-admin
+# domain: example.com         # required for LDAP/AD identity source users
+
+# The password is NEVER read from this file. It is prompted at run time
+# (hidden) or supplied via the VCF_PASSWORD environment variable.
+# refresh_token: ...          # works, but prefer the VCF_REFRESH_TOKEN
+                              # environment variable so the token is not
+                              # stored on disk
+
+
+# ------------------------------------------------------------- TLS trust
+
+# insecure: true              # skip certificate verification (self-signed
+                              # appliance certificate). Prefer ca_bundle.
+# ca_bundle: C:\path\to\internal-ca.pem   # trust this CA instead
+
+
+# ----------------------------------------------------------------- Output
+
+# output: report.html         # default: reports/vcf-automation-assessment-
+                              # report-<host>-<timestamp>.html (an explicit
+                              # path is used exactly as given)
+# json: data.json             # also dump everything collected as JSON
+# compare: previous.json      # an earlier run's --json dump: the report then
+                              # opens with what changed since it
+
+
+# ------------------------------------------------------------- Collection
+
+# projects: [Example Project] # limit the report to these projects
+# timeout: 60                 # per-request timeout in seconds
+# retries: 3                  # times to repeat a call that times out or
+                              # drops before the run gives up on it
+# page_size: 100              # results fetched per API page (the deployments
+                              # API is server-capped at 200 regardless)
+
+
+# --------------------------------------------------------- Report content
+
+# max_rows_per_finding: 500   # cap on affected objects listed per finding
+                              # table in the HTML report; the full list is
+                              # always in the --json dump
+# include_system_subscriptions: true   # show platform built-in subscriptions
+                              # (Quota enforcement, Approval workflow,
+                              # Migration Assessment, ABX-CGS-*); hidden by
+                              # default
+# group_membership: false     # skip expanding the groups projects grant to.
+                              # Expansion is on by default and costs about one
+                              # API call per group; without it an owner reached
+                              # through a group cannot be resolved and their
+                              # access reads as undetermined. Turn it off for an
+                              # account without rights to organization identity
+                              # data, or to keep the run short.
+# request_history: true       # read every deployment's request history, so a
+                              # failure that was retried, or whose deployment has
+                              # since been deleted, is still counted. Deployment
+                              # status alone only shows what is broken right now.
+                              # Costs one API call per deployment (live and
+                              # soft-deleted), which is why it is off by default.
+                              # The platform prunes requests, so the report states
+                              # the window the rate covers.
+# request_history_limit: 200  # read request history for at most this many
+                              # deployments (live first, then soft-deleted).
+                              # For a trial run before committing to a whole
+                              # estate; what it leaves out is reported as a
+                              # collection gap. Unset reads everything.
+# pedantic: true              # also report hygiene-level code-quality signals
+                              # (untidy but working code: wildcard imports,
+                              # declared ABX inputs the action never reads,
+                              # print calls with no logger). Defect-level
+                              # signals are always reported; both tiers are
+                              # always in the --json dump.
+
+
+# ------------------------------------------------------- Sharing externally
+#
+# Redaction writes a SECOND report next to the normal one, with identifying
+# values replaced by stable aliases (person01, host01.domain01.invalid,
+# tag01). The findings, counts, severities and dates are those of the
+# unredacted assessment: only the words in the name columns change. The
+# redacted file is named from the timestamp alone, never the appliance.
+#
+# The run fails, and the redacted file is not written at all, if any value
+# the tool knows about survives into the rendered page. A report that only
+# looks redacted is worse than none.
+#
+# The --json dump is NEVER redacted. It is the internal record.
+
+# redact: true                # write the redacted copy as well
+# redact_output: PATH         # where to write it (default: next to the
+                              # report, vcf-automation-assessment-report-
+                              # redacted-<timestamp>.html)
+# redact_classes: [identity, hosts, tags]
+                              # what to replace. identity: user and group
+                              # names. hosts: host names, URLs and addresses.
+                              # tags: capability tag keys and values. names:
+                              # every object name (projects, templates,
+                              # catalog items, deployments, policies...).
+                              # ids: internal identifiers. The three above
+                              # are the default; add names where object names
+                              # carry business unit, environment or site.
+# redact_extra: [acmecorp]    # extra strings to replace wherever they appear,
+                              # including inside longer identifiers. For a
+                              # company or site name the classes cannot see
+                              # on their own.
+# redact_key: redaction-key.csv
+                              # write the alias-to-real-value mapping so
+                              # findings can be traced back in-house. This
+                              # file is as sensitive as the estate: never
+                              # send it with the redacted report.
+
+
+# -------------------------------------------------------- Report filtering
+#
+# Both lists filter the HTML report only. Every collection area runs on every
+# assessment, so the checks always see the whole estate and the --json dump is
+# always complete. The report header names whatever it left out.
+
+# Report sections to leave out, by anchor id: summary, infrastructure,
+# consumption, design, extensibility, governance, replatforming, system.
+# Findings belonging to a hidden section go with it wherever they render -
+# hiding replatforming also removes REP-002 from Design and Templates.
+ignore_sections:
+  - replatforming             # the Replatforming Readiness Report.
+
+# Findings to leave out, by check id. The list below is the set of pure
+# inventory findings: each restates a table the report already renders.
+# Delete an id to see that finding again.
+ignore_findings:
+  - DEP-002                   # deployments with no machines.

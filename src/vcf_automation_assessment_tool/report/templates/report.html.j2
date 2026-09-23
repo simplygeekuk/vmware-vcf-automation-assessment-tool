@@ -1,0 +1,1785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VCF Automation assessment - {{ meta.url }}</title>
+<style>
+:root {
+  --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f1f0ea;
+  --ink: #0b0b0b; --ink-2: #52514e; --muted: #66645f;
+  --hairline: #e1e0d9; --border: rgba(11,11,11,0.10);
+  --critical: #d03b3b; --warning: #fab219; --info: #2a78d6; --good: #0ca30c;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 64px; }
+/* The masthead must out-rank the h2 chapter bands below it: same dark band
+   language, but bigger type, deeper padding and an accent rule under the
+   title so the report opens with an unmistakable cover line. */
+header.top {
+  margin: 24px 0 0; padding: 26px 28px 22px;
+  background: var(--ink); color: #fdfdfc; border-radius: 10px;
+}
+h1 {
+  font-size: 32px; margin: 0 0 10px; letter-spacing: .01em;
+  padding-bottom: 12px; border-bottom: 3px solid var(--info);
+}
+header.top .sub { color: #b9b7af; font-size: 15px; }
+/* Section headings must be findable while scrolling past tables and cards:
+   h2 is a full-width dark band (a chapter divider, unmistakable against the
+   light page), h3 gets an accent bar. */
+h2 {
+  font-size: 20px; margin: 56px 0 14px; padding: 10px 16px;
+  background: var(--ink); color: #fdfdfc; border-radius: 8px;
+  letter-spacing: .01em;
+}
+h2:first-of-type { margin-top: 28px; }
+/* Every chapter is a collapsible block, open on load. The dark band is the
+   <summary> itself and the h2 lives inside it, so the document outline, the
+   #anchor targets and the print styles all stay as they were. */
+details.sec { margin: 56px 0 0; }
+details.sec:first-of-type { margin-top: 28px; }
+details.sec > summary { margin: 0; font-size: inherit; color: inherit; list-style: none; }
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary > h2 { margin: 0; }
+details.sec > summary > h2::after {
+  content: "▾"; float: right; margin-left: 12px; color: #b9b7af; font-weight: 400;
+}
+details.sec:not([open]) > summary > h2::after { content: "▸"; }
+details.sec > summary:hover > h2 { background: #23231f; }
+/* No padding here: the first child's own margin sets the gap under the
+   band, so the two do not stack into a hole. */
+details.sec > .secbody { padding-top: 0; }
+details.sec > .secbody > *:first-child { margin-top: 14px; }
+/* Chapter standfirst: the prose introducing a section, as opposed to the
+   .sub used for captions and cell notes. It spans the full width of the
+   heading band above it, and earns readability from a larger face, more
+   leading and primary ink rather than from a narrower measure. Whole
+   pixels only: half-pixel glyph positions are where Windows subpixel
+   rendering fringes worst. */
+details.sec > .secbody > p.sub {
+  font-size: 16px; line-height: 1.65; color: var(--ink);
+}
+/* Three heading levels, each unmistakable at a glance: the chapter band
+   (h2, dark), the Inventory / Findings rail inside it (h3, light band with
+   a heavy bar), and the content headings under those (h4, bar only). */
+h3.subhead {
+  font-size: 14px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--ink);
+  margin: 34px 0 12px; padding: 9px 16px;
+  background: #edece5; border-left: 5px solid var(--ink); border-radius: 6px;
+}
+h3.subhead .count {
+  float: right; font-size: 12.5px; font-weight: 400; color: var(--ink-2);
+  text-transform: none; letter-spacing: 0;
+}
+h4 {
+  font-size: 16.5px; margin: 30px 0 8px; padding-left: 10px;
+  border-left: 4px solid var(--info);
+}
+nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 4px; }
+nav.toc { position: sticky; top: 0; z-index: 10; background: var(--page); padding: 10px 0; }
+[id] { scroll-margin-top: 110px; }
+:focus-visible { outline: 3px solid var(--info); outline-offset: 3px; }
+.report-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 18px 0; }
+.report-tools label { display: grid; gap: 4px; font-size: 13px; }
+.report-tools input, .report-tools select, .report-tools button {
+  font: inherit; padding: 7px 10px; color: var(--ink); background: var(--surface);
+  border: 1px solid #77756f; border-radius: 5px;
+}
+.report-tools input { min-width: 240px; }
+.report-tools button { cursor: pointer; }
+.report-tools p { flex-basis: 100%; margin: 0; }
+.finding-context { display: flex; gap: 8px 20px; flex-wrap: wrap; font-size: 13px; margin: 8px 0; }
+.finding p { margin: 8px 0; }
+.sort-button { color: inherit; background: none; border: 0; padding: 0; font: inherit;
+  text-transform: inherit; text-align: inherit; cursor: pointer; }
+th[aria-sort="ascending"] .sort-button::after { content: " ↑"; }
+th[aria-sort="descending"] .sort-button::after { content: " ↓"; }
+[hidden] { display: none !important; }
+.back-summary { display: inline-block; margin: 14px 0; }
+.print-note { display: none; }
+@media (max-width: 640px) {
+  nav.toc { position: static; }
+  .wrap { padding: 12px 12px 40px; }
+  header.top { padding: 20px; }
+  h1 { font-size: 26px; }
+  .report-tools label, .report-tools input { width: 100%; min-width: 0; }
+}
+nav.toc a {
+  font-size: 13px; font-weight: 600; text-decoration: none; color: var(--ink-2);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 4px 12px;
+  flex: 1 1 auto; text-align: center;
+}
+nav.toc a:hover { color: var(--ink); border-color: var(--ink-2); }
+.sub { color: var(--ink-2); }
+.meta-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 24px; margin: 16px 0; padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+.meta-grid div { font-size: 13px; color: var(--ink-2); }
+.meta-grid b { display: block; color: var(--ink); font-size: 14px; overflow-wrap: anywhere; }
+.glance { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+/* Equal-width tiles filling the row, content centred - the strip lines up
+   with the severity tiles below instead of ending ragged. */
+.glance .g {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; flex: 1 1 96px; text-align: center;
+}
+.glance .g b { display: block; font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.glance .g span { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+/* The estate strip is the first thing read after the standfirst, so it sits
+   in a recessed panel with its caption inside it: one instrument panel rather
+   than a row of loose chips. Kept deliberately colourless - the severity
+   tiles below it own the reader's attention, and this is their context. */
+.estate {
+  background: var(--surface-2); border: 1px solid var(--hairline);
+  border-radius: 10px; padding: 12px 14px 14px; margin: 16px 0 4px;
+}
+.estate .cap {
+  font-size: 11.5px; font-weight: 650; color: var(--ink-2);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px;
+}
+.estate .glance { margin: 0; }
+.estate .glance .g { flex-basis: 110px; padding: 10px 10px 11px; }
+.estate .glance .g b { font-size: 26px; color: var(--ink); line-height: 1.15; }
+.estate .glance .g span { color: var(--ink-2); }
+.tiles { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0; }
+.tile {
+  flex: 1 1 160px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 16px; border-left-width: 4px;
+}
+.tile .n { font-size: 32px; font-weight: 650; line-height: 1.1; }
+.tile .l { font-size: 13px; color: var(--ink-2); }
+.tile.critical { border-left-color: var(--critical); }
+.tile.warning  { border-left-color: var(--warning); }
+.tile.info     { border-left-color: var(--info); }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+  font-weight: 600; padding: 1px 8px; border-radius: 10px; white-space: nowrap;
+}
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.badge.critical { background: #fbe9e9; color: #7a1f1f; } .badge.critical::before { background: var(--critical); }
+.badge.warning  { background: #fdf3d7; color: #6b4a00; } .badge.warning::before  { background: var(--warning); }
+.badge.info     { background: #e8eef7; color: #1c3f6e; } .badge.info::before     { background: var(--info); }
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+/* Cells wrap at spaces; a word breaks only when it alone is wider than its
+   cell, so short values (runtimes, project names) never shatter and each
+   column stays at least as wide as its longest word. Designated long-token
+   cells (object names, details, criteria) may break anywhere so finding
+   tables still fit the viewport; anything else oversized scrolls inside
+   .tablewrap instead. */
+td { overflow-wrap: break-word; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+tr:last-child td { border-bottom: none; }
+/* Numeric columns align right, header with data: the th carries the same
+   class, so each count sits under its own label. */
+th.num, td.num { font-variant-numeric: tabular-nums; text-align: right; }
+td.detail { white-space: pre-line; overflow-wrap: anywhere; }
+/* Catalog access: a sharing pattern names every project in its audience,
+   which is dozens of them on a real estate and four wrapped lines in a
+   cell. Past a handful the count stands in for the list and the names are
+   one click away, so a row is as tall as what it says rather than as tall
+   as who it reaches. Item names then have the width to wrap between words
+   instead of breaking mid-word. */
+details.names > summary { color: var(--muted); font-size: inherit; margin: 0; }
+details.names[open] > summary { margin-bottom: 4px; }
+table.access td.detail { min-width: 220px; }
+/* Affected-object tables: give Detail real width and wrap long object
+   names (vRO FQNs, urls) instead of starving the other columns. */
+table.affected th:nth-child(1), table.affected td.obj { width: 28%; overflow-wrap: anywhere; }
+table.affected th:nth-child(2) { width: 14%; }
+table.affected td.detail { width: 58%; min-width: 300px; }
+/* Tag table: reserve real width for the tag column so long tag names wrap
+   at hyphens, not character by character in a starved cell. */
+table.tags td.tagname { min-width: 200px; }
+table.tags th:nth-child(2) { width: 48%; }
+table.tags th:nth-child(3) { width: 30%; }
+/* Subscription criteria: shown in full - the expression wraps in place
+   instead of truncating, with its id resolution line beneath. */
+td.crit { min-width: 280px; }
+td.crit code { white-space: pre-wrap; overflow-wrap: anywhere; }
+td.crit .sub { font-size: 12px; margin-top: 4px; }
+/* Subscriptions: names and runnables are long unbroken tokens (underscored
+   identifiers, no break points), which under longest-word column minimums
+   forced the criteria column past the viewport edge. Bound those two
+   columns and let them wrap anywhere, and guarantee criteria its share. */
+table.subs td:nth-child(1) { min-width: 170px; overflow-wrap: anywhere; }
+table.subs td:nth-child(6) { min-width: 150px; overflow-wrap: anywhere; }
+table.subs th:nth-child(7) { width: 32%; }
+.finding {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left-width: 4px; border-radius: 8px; padding: 12px 16px; margin: 12px 0;
+}
+.finding.critical { border-left-color: var(--critical); }
+.finding.warning  { border-left-color: var(--warning); }
+.finding.info     { border-left-color: var(--info); }
+.finding .rec { color: var(--ink-2); font-size: 13.5px; margin: 6px 0 8px; }
+details summary { cursor: pointer; color: var(--ink-2); font-size: 13px; margin: 4px 0; }
+details[open] summary { margin-bottom: 8px; }
+.banner {
+  background: #fdf3d7; border: 1px solid var(--warning); border-radius: 8px;
+  padding: 10px 16px; margin: 16px 0; font-size: 14px;
+}
+.banner.redaction { background: #eef4fb; border-color: #9db8d6; }
+.truncnote { color: var(--muted); font-size: 12.5px; padding: 6px 12px; }
+/* Own row above the table, pushed right: a floated button would make the
+   table (a BFC via overflow-x) shrink to fit beside it. */
+.csvbtn { display: block; margin: 6px 0 6px auto; font: inherit; font-size: 12px;
+  color: var(--ink-2); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 2px 10px; cursor: pointer; }
+details.inv > .csvbtn { margin-right: 16px; }
+.csvbtn:hover { color: var(--ink); border-color: var(--ink-2); }
+@media print { .csvbtn { display: none; } }
+ul.notes { color: var(--ink-2); font-size: 13.5px; margin: 6px 0 14px; padding-left: 20px; }
+ul.notes li { margin: 3px 0; }
+details.steps > summary { color: var(--ink-2); font-weight: 600; margin: 6px 0 8px; }
+details.steps ul.notes { margin-top: 0; }
+.flow { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; margin: 10px 0; }
+.flow summary { font-size: 14.5px; color: var(--ink); font-weight: 600; }
+.flow .fmeta { color: var(--muted); font-weight: 400; font-size: 12.5px; }
+details.inv { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin: 14px 0; }
+details.inv > summary { padding: 10px 16px; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; }
+/* The catalog usage table is the one inventory block read before the
+   findings, so it is marked out from the collapsibles around it. */
+details.inv.featured { border-color: var(--info); border-left-width: 4px; }
+details.inv.featured > summary { font-size: 16px; }
+.glance.headline { margin-top: 14px; }
+.glance.headline .g { border-color: var(--info); }
+details.inv > summary .count { color: var(--muted); font-weight: 400; font-size: 13px; }
+details.inv .tablewrap { border: none; border-top: 1px solid var(--hairline); border-radius: 0 0 8px 8px; }
+details.inv pre.mermaid, details.inv pre.mmd-src { margin: 8px 16px 12px; }
+details.inv > p.sub { margin: 2px 16px 10px; }
+details.inv > details.proj { margin: 0 16px 10px; }
+details.inv > details.proj > summary .count { color: var(--muted); font-weight: 400; }
+.flowwrap { padding: 2px 16px 12px; border-top: 1px solid var(--hairline); }
+.flowwrap .flow { background: var(--page); }
+pre.mermaid { overflow-x: auto; background: var(--surface); margin: 8px 0; }
+pre.mmd-src { overflow-x: auto; background: var(--page); border: 1px dashed var(--hairline); padding: 10px; font-size: 12px; }
+code { background: var(--page); border: 1px solid var(--hairline); border-radius: 4px; padding: 0 4px; font-size: 12.5px; }
+a { color: #1c5cab; }
+footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; }
+@media print {
+  @page { margin: 16mm; }
+  .report-tools, .back-summary { display: none !important; }
+  .print-note { display: block; }
+  body.print-summary details.sec:not(#summary), body.print-summary .finding-index { display: none; }
+  body.print-summary .coverage-detail { display: none; }
+  body.print-summary { font-size: 10pt; line-height: 1.3; }
+  body.print-summary h1 { font-size: 22pt; margin: 0 0 6px; padding-bottom: 6px; }
+  body.print-summary h2 { font-size: 14pt; margin: 14px 0 8px; }
+  body.print-summary h3.subhead { margin: 12px 0 6px; padding: 4px 0; }
+  body.print-summary .meta-grid { grid-template-columns: repeat(3, 1fr); padding: 8px; margin: 8px 0; }
+  body.print-summary .meta-grid div, body.print-summary .meta-grid b { font-size: 9pt; }
+  body.print-summary details.sec > .secbody > p.sub { font-size: 10pt; line-height: 1.3; }
+  body.print-summary .finding-context { font-size: 9pt; margin: 4px 0; }
+  body.print-summary .estate { padding: 8px; margin-top: 10px; }
+  body.print-summary .estate .glance .g { padding: 6px; }
+  body.print-summary .estate .glance .g b { font-size: 18px; }
+  body.print-summary .tiles { margin: 10px 0; }
+  body.print-summary .tile { padding: 8px; }
+  body.print-summary .tile .n { font-size: 22px; }
+  .tablewrap { overflow: visible; border-radius: 0; }
+  table { font-size: 10pt; }
+  thead { display: table-header-group; }
+  tr { break-inside: avoid; }
+  h2, h3, h4 { break-after: avoid; }
+  .finding, .flow { break-inside: auto; }
+  .tablewrap, pre.mermaid { overflow: visible; }
+  .tile { break-inside: avoid; }
+  /* Browsers usually skip printing backgrounds - keep sections marked. */
+  h2 { background: none; color: var(--ink); border-radius: 0; padding: 10px 0 6px;
+       border-top: 3px solid var(--ink); }
+  header.top { background: none; color: var(--ink); border-radius: 0; padding: 0 0 12px; }
+  header.top .sub { color: var(--ink-2); }
+  nav.toc { display: none; }
+  details.sec > summary > h2::after { content: none; }
+  h3.subhead { background: none; border-left: none; border-bottom: 2px solid var(--ink);
+               border-radius: 0; padding: 6px 0 4px; }
+  details.sec > *:not(summary) { display: block; }
+  /* On paper there is nothing to click, and a printed finding without its
+     procedure is half a finding. */
+  details.steps > *:not(summary) { display: block; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>VCF Automation Assessment</h1>
+  <div class="sub">Operational findings and assessment coverage</div>
+</header>
+
+<div class="meta-grid">
+  <div>Target<b>{{ meta.url }}</b></div>
+  <div>Generated<b>{{ meta.generated_at | readable_date }}</b></div>
+  <div>Run as<b>{{ meta.identity }}</b></div>
+  {% if meta.platform_version %}<div>Platform version<b>{{ meta.platform_version }}</b></div>{% endif %}
+  <div>IaaS API version<b>{{ meta.iaas_api_version | default('?') }}</b></div>
+  {% if meta.projects_filter %}<div>Project filter<b>{{ meta.projects_filter | join(', ') }}</b></div>{% endif %}
+  {% if meta.redaction %}<div>Redacted<b>{{ meta.redaction.classes | join(', ') }}</b></div>{% endif %}
+  {% if hidden_sections %}<div>Hidden sections<b>{{ hidden_sections | join(', ') }}</b></div>{% endif %}
+  {% if suppressed_findings %}<div>Ignored findings<b>{{ suppressed_findings | join(', ') }}</b></div>{% endif %}
+  {% if meta.compared_with %}<div>Compared with<b>run of {{ meta.compared_with | readable_date }}</b></div>{% endif %}
+  <div>Tool<b>vcf-automation-assessment-tool {{ meta.tool_version }}</b></div>
+</div>
+
+<nav class="toc">
+  {% if visible.summary %}<a href="#summary">Summary</a>{% endif %}
+  {% if visible.infrastructure %}<a href="#infrastructure">Infrastructure</a>{% endif %}
+  {% if visible.consumption %}<a href="#consumption">Consumption</a>{% endif %}
+  {% if visible.governance %}<a href="#governance">Policies and Governance</a>{% endif %}
+  {% if visible.design %}<a href="#design">Design and Templates</a>{% endif %}
+  {% if visible.extensibility %}<a href="#extensibility">Extensibility</a>{% endif %}
+  {% if visible.replatforming %}<a href="#replatforming">Replatforming</a>{% endif %}
+  <a href="#coverage">Coverage</a>
+</nav>
+
+<div class="report-tools" hidden>
+  <label>Search findings and inventory<input id="report-search" type="search" placeholder="Name, finding ID or evidence" aria-controls="report-content"></label>
+  <label>Finding severity<select id="filter-severity"><option value="">All severities</option><option value="critical">Critical</option><option value="warning">Warning</option><option value="info">Info</option></select></label>
+  <label>Finding evidence<select id="filter-evidence"><option value="">All evidence</option><option>Observed failure</option><option>Potential issue</option><option>Review candidate</option></select></label>
+  <label>Finding project<select id="filter-project"><option value="">All projects</option>{% for project in finding_projects %}<option>{{ project }}</option>{% endfor %}<option value="__unassigned__">No project recorded</option></select></label>
+  <button type="button" id="clear-filters">Clear filters</button>
+  <button type="button" id="print-summary"{% if not visible.summary %} disabled{% endif %}>Print summary</button>
+  <button type="button" id="print-full">Print full evidence</button>
+  <p id="filter-status" role="status" aria-live="polite"></p>
+  <p class="sub">Search covers rendered evidence; capped rows are not searched. Finding filters do not filter inventory. Summary totals describe the full displayed assessment.</p>
+</div>
+<p class="print-note">Assessment snapshot. Missing or partial coverage limits conclusions. Evidence tables retain the report's row limits; use the full JSON export for omitted rows.</p>
+
+{% if meta.redaction %}
+<div class="banner redaction">
+  <strong>Redacted copy.</strong> {{ meta.redaction.replaced }} {{ meta.redaction.replaced | plural('value') }} in this report were
+  replaced with aliases before it was written: {{ meta.redaction.described }}. An alias is
+  stable, so the same alias always stands for the same object, and the person or team who
+  ran the assessment can map it back. Findings, counts, severities and dates are exactly
+  those of the unredacted assessment - only the words in the name columns differ. Free text
+  the tool could not resolve to an alias, a phrase inside a description for instance, may
+  still carry meaning; read it as you would any document leaving the organisation.
+</div>
+{% endif %}
+
+{% if data.errors %}
+<div class="banner">
+  &#9888;&#65039; <strong>Assessment incomplete.</strong> {{ data.errors | length }} collection
+  {{ data.errors | length | plural('gap') }}; see <a href="#coverage">assessment coverage</a>. Findings depending on the missing
+  areas may under-report.
+</div>
+{% endif %}
+
+{# ============================ MACROS ============================ #}
+{% macro sev_badge(sev) %}
+<span class="badge {{ sev | sev_class }}">{{ (sev | sev_class) | upper }}</span>
+{% endmacro %}
+
+{% macro note_list(notes) %}
+<ul class="notes">
+  {% for line in notes %}<li>{{ line | mark_dates }}</li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
+{% macro finding_block(f) %}
+{% set insight = insights[f.check_id] %}
+<div class="finding {{ f.severity | sev_class }}" id="{{ f.check_id }}" data-severity="{{ f.severity | sev_class }}" data-evidence="{{ insight.evidence }}" data-projects='{{ insight.projects | tojson }}'>
+  <div><strong>{{ f.check_id }}</strong> &nbsp;{{ sev_badge(f.severity) }} &nbsp;
+       <strong>{{ f.title }}</strong> &nbsp;<span class="sub">({{ f.count }} affected)</span></div>
+  <div class="finding-context"><span><b>Evidence:</b> {{ insight.evidence }}</span><span><b>Suggested priority:</b> {{ insight.priority }}</span></div>
+  <p><b>Why it matters:</b> {{ insight.impact }}</p>
+  {# A recommendation may carry newlines: first line is the lead, the rest
+     render as one bullet per line instead of a wall of text. A long set of
+     numbered procedure can be folded away. Unnumbered qualifications remain
+     visible because they can change how the finding should be interpreted. #}
+  {% set rec_lines = f.recommendation.split('\n') %}
+  {% set notes = rec_lines[1:] %}
+  <div class="rec"><b>Recommended action:</b> {{ rec_lines[0] | mark_dates }}</div>
+  {% if notes %}
+  {% if (notes | join(' ')) | length > 240 and notes[0][:2] == '1.' %}
+  <details class="steps">
+    {# Numbered notes are a procedure; everything else is method and caveat,
+       and calling those "what to do" would promise an instruction that is
+       not there. #}
+    <summary>How to fix ({{ notes | length }} {{ notes | length | plural('step') }})</summary>
+    {{ note_list(notes) }}
+  </details>
+  {% else %}
+  {{ note_list(notes) }}
+  {% endif %}
+  {% endif %}
+  <p class="rec"><b>Verify:</b> {{ insight.verification }}</p>
+  {% if f.check_id == 'REP-001' %}
+  <div class="tablewrap">
+  <table class="replacement">
+    <tr><th>Catalog item</th><th>Complexity</th><th>Reason</th><th class="num">Live deployments</th><th>Suggested approach</th></tr>
+    {% for row in replacement.rows[:max_rows] %}
+    <tr><td>{{ row.name }}{% if row.project %}<div class="sub">{{ row.project }}</div>{% endif %}</td>
+      <td>{{ row.complexity }}</td><td>{{ row.reason }}</td>
+      <td class="num">{{ row.deployments if row.deployments is not none else 'Unknown' }}</td>
+      <td>{{ row.target }}</td></tr>
+    {% endfor %}
+  </table>
+  {% if f.count > max_rows %}<div class="truncnote">{{ f.count - max_rows }} more not shown. Use --json for the full list.</div>{% endif %}
+  </div>
+  {% elif f.affected %}
+  {% set shown = f.affected[:max_rows] %}
+  {# Plenty of checks are about objects no project owns - policies, zones,
+     endpoints, whole projects - and an empty Project column running down all
+     48 rows of a table reads as data the collection failed to fetch. Drop it
+     where nothing fills it, the same rule the endpoint Status column follows. #}
+  {% set with_project = shown | selectattr('project') | list | length > 0 %}
+  <details>
+    <summary>Show {{ [f.count, max_rows] | min }} of {{ f.count }} affected {{ f.count | plural('object') }}</summary>
+    <div class="tablewrap">
+    <table class="affected">
+      <tr><th>Name</th>{% if with_project %}<th>Project</th>{% endif %}<th>Detail</th></tr>
+      {% for a in shown %}
+      <tr><td class="obj">{{ a.name }}</td>{% if with_project %}<td>{{ a.project or '' }}</td>{% endif %}<td class="detail">{{ a.detail | detail_markup }}</td></tr>
+      {% endfor %}
+    </table>
+    {% if f.count > max_rows %}<div class="truncnote">{{ f.count - max_rows }} more not shown. Use --json for the full list.</div>{% endif %}
+    </div>
+  </details>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro section_findings(key) %}
+{% for f in findings_by_section[key] %}{{ finding_block(f) }}{% endfor %}
+{% endmacro %}
+
+{# The Findings half of a chapter. The rail carries the severity tally so a
+   reader sees the shape of the section before opening a single card, and
+   the whole block disappears when a chapter has nothing to report. #}
+{% macro findings_subsection(key) %}
+{% set fs = findings_by_section[key] %}
+{% if fs %}
+{% set c = section_severity_counts[key] %}
+<h3 class="subhead">Findings <span class="count">{{ fs | length }} total{% if c.critical %} &middot; {{ c.critical }} critical{% endif %}{% if c.warning %} &middot; {{ c.warning }} warning{% endif %}{% if c.info %} &middot; {{ c.info }} info{% endif %}</span></h3>
+{% for f in fs %}{{ finding_block(f) }}{% endfor %}
+{% endif %}
+{% endmacro %}
+
+{# ======================= SUMMARY ======================= #}
+<div id="report-content">
+{% if visible.summary %}
+<details class="sec" id="summary" open>
+<summary><h2>Summary</h2></summary>
+<div class="secbody">
+{% if estate %}
+<section class="estate">
+<div class="cap">This environment at a glance</div>
+<div class="glance">
+  {% for g in estate %}
+  <div class="g"><b>{{ g.value }}</b><span>{{ g.label }}</span></div>
+  {% endfor %}
+</div>
+</section>
+{% endif %}
+<div class="tiles">
+  <div class="tile critical"><div class="n">{{ severity_counts.critical }}</div><div class="l">Critical findings - urgent investigation</div></div>
+  <div class="tile warning"><div class="n">{{ severity_counts.warning }}</div><div class="l">Warning findings - review and prioritise</div></div>
+  <div class="tile info"><div class="n">{{ severity_counts.info }}</div><div class="l">Info findings - context and review</div></div>
+</div>
+<p class="sub">Severity describes the concern; evidence describes what supports it. A failed operation does
+not by itself establish a service outage. Service owners must confirm business impact.</p>
+<p><strong>{{ findings | length }} {{ findings | length | plural('finding') }} displayed:</strong>
+{% if coverage_limited %}{{ coverage_limited }} coverage areas are partial, unavailable or not assessed; review the limitations below.{% else %}No collection limitations were identified in the coverage checks.{% endif %}
+Affected counts can overlap across findings and must not be added together as unique objects.</p>
+{% if comparison %}
+<section class="estate">
+<div class="cap">Since the run of {{ comparison.previous.generated_at | readable_date }}{% if not comparison.previous.same_target %} (a different or unknown target){% endif %}</div>
+{% if comparison.summary.unable_to_reassess %}<p><strong>{{ comparison.summary.unable_to_reassess }} {{ comparison.summary.unable_to_reassess | plural('finding') }} unable to reassess.</strong> Missing evidence or changed assessment settings prevent a reliable change classification.</p>{% endif %}
+<div class="glance">
+  <div class="g"><b>{{ comparison.summary.new }}</b><span>New findings</span></div>
+  <div class="g"><b>{{ comparison.summary.resolved }}</b><span>Resolved findings</span></div>
+  <div class="g"><b>{{ comparison.summary.changed }}</b><span>Changed findings</span></div>
+  <div class="g"><b>{{ comparison.summary.objects_added }}</b><span>Objects newly flagged</span></div>
+  <div class="g"><b>{{ comparison.summary.objects_resolved }}</b><span>Objects no longer flagged</span></div>
+</div>
+{% if comparison.rows %}
+<div class="tablewrap"><table>
+  <tr><th>ID</th><th>Change</th><th>Finding</th><th class="num">Before</th><th class="num">Now</th><th>Newly flagged</th><th>No longer flagged</th><th>Limitations</th></tr>
+  {% for r in comparison.rows %}
+  <tr><td>{% if r.check_id in insights %}<a href="#{{ r.check_id }}">{{ r.check_id }}</a>{% else %}{{ r.check_id }}{% endif %}</td>
+      <td>{{ 'Unable to reassess' if r.status == 'unable_to_reassess' else r.status }}</td>
+      <td>{{ r.title }}</td>
+      <td class="num">{{ r.before }}</td>
+      <td class="num">{{ r.now }}</td>
+      <td>{{ r.new_names[:5] | join(', ') }}{% if r.new_names | length > 5 %} +{{ r.new_names | length - 5 }} more{% endif %}</td>
+      <td>{% if meta.redaction %}{% if r.resolved_names %}{{ r.resolved_names | length }} {{ r.resolved_names | length | plural('object') }}{% endif %}{% else %}{{ r.resolved_names[:5] | join(', ') }}{% if r.resolved_names | length > 5 %} +{{ r.resolved_names | length - 5 }} more{% endif %}{% endif %}</td><td>{{ r.reasons | default([]) | join('; ') }}</td></tr>
+  {% endfor %}
+</table></div>
+{% endif %}
+<p class="sub">{{ comparison.unchanged }} {{ comparison.unchanged | plural('finding') }} unchanged. Objects are matched by the platform's id where it gave one, else by name{% if meta.redaction %}; the names of objects no longer flagged belong to the earlier run and are not printed in a redacted copy{% endif %}. Resolved means no longer flagged in comparable evidence, not verified remediation. Objects can disappear through deletion or history retention. Before and Now are recorded counts, not proof of change when reassessment is unavailable.</p>
+{% if comparison.inventory %}
+<div class="tablewrap"><table>
+  <tr><th>Inventory</th><th class="num">Before</th><th class="num">Now</th><th class="num">Change</th></tr>
+  {% for i in comparison.inventory %}
+  <tr><td>{{ i.label }}</td><td class="num">{{ i.before }}</td><td class="num">{{ i.now }}</td>
+      <td class="num">{% if i.delta > 0 %}+{% endif %}{{ i.delta }}</td></tr>
+  {% endfor %}
+</table></div>
+{% endif %}
+</section>
+{% endif %}
+<div class="tablewrap finding-index">
+<table>
+  <tr><th>ID</th><th>Severity</th><th>Finding</th><th class="num">Affected</th></tr>
+  {% for f in findings %}
+  <tr data-finding="{{ f.check_id }}"><td><a href="#{{ f.check_id }}">{{ f.check_id }}</a></td>
+      <td>{{ sev_badge(f.severity) }}</td>
+      <td>{{ f.title }}</td>
+      <td class="num">{{ f.count }}</td></tr>
+  {% endfor %}
+</table>
+</div>
+</div>
+</details>
+{% endif %}
+
+<details class="sec" id="coverage" open>
+<summary><h2>Assessment Coverage</h2></summary>
+<div class="secbody">
+<p>Collected means no limitation was recorded for that area; it does not prove full administrative visibility or that every check passed. Partial and unassessed areas must not be interpreted as clean results. Check families below may depend on these areas.</p>
+<div class="tablewrap"><table>
+<tr><th>Area</th><th>Status</th><th>Reason or limitation</th><th>Check families</th></tr>
+{% for row in coverage %}<tr><td>{{ row.label }}</td><td>{{ row.status }}</td><td>{{ row.reason }}</td><td>{{ row.checks }}</td></tr>{% endfor %}
+</table></div>
+{% if data.errors %}<details class="coverage-detail"><summary>Collection and analysis errors ({{ data.errors | length }})</summary>
+<div class="tablewrap"><table><tr><th>Area</th><th>Item</th><th>Error</th></tr>
+{% for e in data.errors %}<tr><td>{{ e.area }}</td><td>{{ e.item }}</td><td>{{ e.error }}</td></tr>{% endfor %}
+</table></div></details>{% endif %}
+</div>
+</details>
+
+{# ======================= INFRASTRUCTURE ======================= #}
+{% if visible.infrastructure %}
+<details class="sec" id="infrastructure" open>
+<summary><h2>Infrastructure</h2></summary>
+<div class="secbody">
+<p class="sub">The parts everything else is built on. This section covers the systems the
+platform is connected to, such as vCenter, NSX and Orchestrator; the cloud zones
+where machines can be placed; the network, storage, machine size and image
+choices; the projects that give people access to resources, with the quota each
+one holds in every zone it uses; and the capability tags that decide where a
+machine can go.</p>
+<h3 class="subhead">Inventory</h3>
+{% if infra.cloud_accounts %}
+{# Status only when the build's API exposes one on any account - a column of
+   blanks would read as "not checked", which is exactly what it means. #}
+{% set acct_status = infra.cloud_accounts | selectattr("status_label") | list | length > 0 %}
+<details class="inv">
+<summary>Cloud Accounts <span class="count">({{ infra.cloud_accounts | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Type</th>{% if acct_status %}<th>Status</th>{% endif %}
+      <th>Capability tags</th><th class="num">Enabled regions</th></tr>
+  {% for a in infra.cloud_accounts %}
+  <tr><td>{{ a.name }}</td><td>{{ a.cloudAccountType }}</td>
+      {% if acct_status %}<td>{{ a.status_label }}</td>{% endif %}
+      <td>{{ a.tag_label or "none" }}</td>
+      <td class="num">{{ (a.enabledRegions or []) | length }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if infra.integrations %}
+{% set int_status = infra.integrations | selectattr("status_label") | list | length > 0 %}
+<details class="inv">
+<summary>Integrations <span class="count">({{ infra.integrations | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Type</th>{% if int_status %}<th>Status</th>{% endif %}
+      <th>Capability tags</th></tr>
+  {% for i in infra.integrations %}
+  <tr><td>{{ i.name }}</td><td>{{ i.integrationType | default('?') }}</td>
+      {% if int_status %}<td>{{ i.status_label }}</td>{% endif %}
+      <td>{{ i.tag_label or "none" }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if infra.zones %}
+{# A zone whose computes are chosen by hand carries no tagsToMatch, and a live
+   estate had none on any of its 41 zones. Showing the column then is 41 blank
+   cells that look like a collection failure. #}
+{% set zone_filters = infra.zones | selectattr('tagsToMatch') | list | length > 0 %}
+<details class="inv">
+<summary>Cloud Zones <span class="count">({{ infra.zones | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Placement</th><th class="num">Computes</th><th>Capability tags</th>{% if zone_filters %}<th>Compute filter (tagsToMatch)</th>{% endif %}</tr>
+  {% for z in infra.zones %}
+  <tr><td>{{ z.name }}</td><td>{{ z.placementPolicy | default('DEFAULT') }}</td>
+      <td class="num">{{ infra.zone_compute_counts.get(z.id, '?') }}</td>
+      <td>{% for t in z.tags or [] %}<code>{{ t.key }}{% if t.value %}:{{ t.value }}{% endif %}</code> {% endfor %}</td>
+      {% if zone_filters %}<td>{% for t in z.tagsToMatch or [] %}<code>{{ t.key }}{% if t.value %}:{{ t.value }}{% endif %}</code> {% endfor %}</td>{% endif %}</tr>
+  {% endfor %}
+</table></div>
+{% if not zone_filters %}
+<p class="sub" style="padding: 0 16px;">No cloud zone selects its compute resources by tag. Every zone here holds only what
+somebody added to it by hand.</p>
+{% endif %}
+</details>
+{% endif %}
+{% if infra.network_profiles %}
+<details class="inv">
+<summary>Network Profiles <span class="count">({{ infra.network_profiles | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Isolation</th><th>Capability tags</th></tr>
+  {% for p in infra.network_profiles %}
+  <tr><td>{{ p.name }}</td>
+      <td>{{ p.isolationType | default('NONE') }}</td>
+      <td>{% for t in p.tags or [] %}<code>{{ t.key }}{% if t.value %}:{{ t.value }}{% endif %}</code> {% endfor %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if infra.ip_ranges %}
+{% set ip_pressured = infra.ip_ranges | selectattr('ratio', 'ne', none) | selectattr('ratio', 'ge', 0.8) | list | length %}
+<details class="inv">
+<summary>IP Ranges <span class="count">({{ infra.ip_ranges | length }}{% if ip_pressured %}, {{ ip_pressured }} at or near full{% endif %})</span></summary>
+<p class="sub" style="padding: 0 16px;">The platform's own allocation counters for the ranges it manages. A range with
+no addresses left fails the next build placed on its network, after placement
+has already chosen the zone (INF-005); one within a fifth of full is INF-006.</p>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Version</th><th>Range</th><th class="num">Total</th><th class="num">Allocated</th><th class="num">Available</th><th class="num">Used</th></tr>
+  {% for r in infra.ip_ranges %}
+  <tr{% if r.ratio is not none and r.ratio >= 1 %} class="bad"{% elif r.ratio is not none and r.ratio >= 0.8 %} class="warn"{% endif %}><td>{{ r.name }}</td>
+      <td>{{ r.ip_version }}</td>
+      <td>{{ r.start }}{% if r.end %} - {{ r.end }}{% endif %}</td>
+      <td class="num">{% if r.total is not none %}{{ r.total | int }}{% endif %}</td>
+      <td class="num">{% if r.allocated is not none %}{{ r.allocated | int }}{% endif %}</td>
+      <td class="num">{% if r.available is not none %}{{ r.available | int }}{% endif %}</td>
+      <td class="num">{% if r.ratio is not none %}{{ (r.ratio * 100) | round | int }}%{% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if infra.external_ip_ranges %}
+<details class="inv">
+<summary>External IP Ranges <span class="count">({{ infra.external_ip_ranges | length }})</span></summary>
+<p class="sub" style="padding: 0 16px;">Ranges an IPAM integration manages. The platform records their bounds but not
+their usage, so they carry no counters and no finding.</p>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Version</th><th>Range</th><th>Prefix</th><th>Gateway</th><th>Domain</th></tr>
+  {% for r in infra.external_ip_ranges %}
+  <tr><td>{{ r.name }}</td><td>{{ r.ipVersion | default('') }}</td>
+      <td>{{ r.startIPAddress | default('') }}{% if r.endIPAddress %} - {{ r.endIPAddress }}{% endif %}</td>
+      <td>{{ r.subnetPrefixLength | default('') }}</td><td>{{ r.gatewayAddress | default('') }}</td>
+      <td>{{ r.domain | default('') }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if infra.storage_profiles %}
+<details class="inv">
+<summary>Storage Profiles <span class="count">({{ infra.storage_profiles | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Default</th><th>Capability tags</th></tr>
+  {% for p in infra.storage_profiles %}
+  <tr><td>{{ p.name }}</td>
+      <td>{% if p.defaultItem %}yes{% else %}no{% endif %}</td>
+      <td>{% for t in p.tags or [] %}<code>{{ t.key }}{% if t.value %}:{{ t.value }}{% endif %}</code> {% endfor %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% elif storage_profiles_read %}
+{# Read and empty is worth saying; leaving the table out in silence makes an
+   estate with no storage profiles look like a report that forgot to ask. An
+   unread collection says nothing here - it is named in Collection Gaps. #}
+<p class="sub">No storage profiles are defined. Disks go wherever the cloud zone's own
+datastore settings put them, and no template can ask for a type of storage by
+tag.</p>
+{% endif %}
+{% if infra.flavor_profiles %}
+<details class="inv">
+<summary>Flavor Mappings <span class="count">({{ infra.flavor_profiles | length }} {{ infra.flavor_profiles | length | plural('profile') }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Profile</th><th>Region</th><th class="num">Mappings</th><th>Mapping names</th></tr>
+  {% for p in infra.flavor_profiles %}
+  {% set mapping = (p.flavorMappings or {}).get('mapping', {}) %}
+  <tr><td>{{ p.name or '(unnamed profile)' }}</td>
+      <td>{{ p.region_label }}</td>
+      <td class="num">{{ mapping | length }}</td>
+      <td>{% for k in mapping %}<code>{{ k }}</code> {% endfor %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if infra.image_profiles %}
+<details class="inv">
+<summary>Image Mappings <span class="count">({{ infra.image_profiles | length }} {{ infra.image_profiles | length | plural('profile') }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Profile</th><th>Region</th><th class="num">Mappings</th><th>Mapping names</th></tr>
+  {% for p in infra.image_profiles %}
+  {% set mapping = (p.imageMappings or {}).get('mapping', {}) %}
+  <tr><td>{{ p.name or '(unnamed profile)' }}</td>
+      <td>{{ p.region_label }}</td>
+      <td class="num">{{ mapping | length }}</td>
+      <td>{% for k in mapping %}<code>{{ k }}</code> {% endfor %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if infra.projects %}
+<details class="inv">
+<summary>Projects <span class="count">({{ infra.projects | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th class="num">Admins</th><th class="num">Members</th><th class="num">Viewers</th><th class="num">Zones</th></tr>
+  {% for p in infra.projects %}
+  <tr><td>{{ p.name }}</td>
+      <td class="num">{{ (p.administrators or []) | length }}</td>
+      <td class="num">{{ (p.members or []) | length }}</td>
+      <td class="num">{{ (p.viewers or []) | length }}</td>
+      <td class="num">{{ (p.zones or []) | length }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if naming.rows %}
+<details class="inv" id="naming-conventions">
+<summary>Naming Conventions <span class="count">({{ naming.rows | length }} entries)</span></summary>
+<p class="sub">Configured project templates and custom naming assignments. Examples are observed
+hostnames from each project, not proof that a particular rule generated them. An absent project
+template does not establish that no naming convention exists. Precedence and historical
+compliance are not evaluated.</p>
+{% if not naming.complete %}<p class="sub">Custom naming profile collection is incomplete or was not performed; assignments and patterns may be missing.</p>{% endif %}
+{% if naming.hostnames_missing %}<p class="sub">Machines were collected, but none supplied a hostname. These examples cannot be populated from this assessment; check hostname collection and run a fresh assessment.</p>{% endif %}
+<div class="tablewrap"><table>
+<tr><th>Project / scope</th><th>Naming source</th><th>Pattern</th><th>Observed project hostnames</th></tr>
+{% for row in naming.rows %}
+<tr><td>{{ row.project }}</td><td>{{ row.source }}{% if row.profile %}<div>{{ row.profile }}</div>{% endif %}<div class="sub">{{ row.resource }}</div></td>
+<td><code>{{ row.pattern }}</code>{% if row.details %}<details><summary>Scope, expressions and counters</summary><ul>{% for detail in row.details %}<li>{{ detail }}</li>{% endfor %}</ul></details>{% endif %}</td>
+<td>{% for hostname in row.examples %}<div>{{ hostname }}</div>{% else %}{{ row.example_status }}{% endfor %}</td></tr>
+{% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if zone_allocations %}
+<details class="inv">
+<summary>Project Zone Allocation <span class="count">({{ zone_allocations | length }} {{ zone_allocations | length | plural('assignment') }}{% if zone_allocations_pressured %}, {{ zone_allocations_pressured }} at 80% or more of a limit{% endif %})</span></summary>
+<p class="sub" style="padding: 0 16px;">Each project gives every cloud zone it uses a quota, and the platform counts what
+that project has already taken from the zone. A row that has reached its limit
+cannot build anything more in that zone until somebody raises the limit or frees
+the resources. Columns are shown only for the limits this estate actually uses.
+A row can sit above its limit: the count is what is allocated now, so lowering a
+limit below it leaves the project over.</p>
+<div class="tablewrap"><table>
+  <tr><th>Project</th><th>Cloud zone</th>{% for c in zone_allocation_columns %}<th>{{ c.label }}</th>{% endfor %}</tr>
+  {% for r in zone_allocations %}
+  <tr><td>{{ r.project }}</td><td>{{ r.zone }}</td>
+      {% for cell in r.cells %}<td class="num">{{ cell }}</td>{% endfor %}</tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if identity_groups %}
+<details class="inv">
+<summary>Groups Granted on Projects <span class="count">({{ identity_groups | length }})</span></summary>
+<p class="sub" style="padding: 0 16px;">Most project access comes through groups, so the ownership table matches names
+against them. A group the organization does not list cannot be checked: the
+grant is real, but nobody can say who it reaches. PRJ-003 reports those. The table
+shows only roles above the basic one that every group carries.</p>
+<div class="tablewrap"><table>
+  <tr><th>Group</th><th>Projects</th><th class="num">Members</th><th>Organization roles</th></tr>
+  {% for g in identity_groups %}
+  <tr><td>{{ g.name }}</td>
+      <td>{{ g.projects }}</td>
+      <td class="num">{{ g.members }}{% if g.members_note %} <span class="sub">({{ g.members_note }})</span>{% endif %}</td>
+      <td>{{ g.roles }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if secrets %}
+<details class="inv">
+<summary>Secrets <span class="count">({{ secrets | length }}{% if secrets_use_known %}{% set unused = secrets | rejectattr('used_by') | list | length %}{% if unused %}, {{ unused }} read by nothing{% endif %}{% endif %})</span></summary>
+<p class="sub" style="padding: 0 16px;">The secrets the platform holds for templates to read as <code>${secret.name}</code>.
+Values are never read by this tool. "Used by" names the cloud templates and
+property groups whose content reads the secret{% if not secrets_use_known %}; it is
+withheld here because not every template could be read{% endif %}.</p>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Scope</th><th>Created by</th><th>Last updated</th>{% if secrets_use_known %}<th>Used by</th>{% endif %}</tr>
+  {% for s in secrets %}
+  <tr><td>{{ s.name }}{% if s.description %} <span class="sub">{{ s.description }}</span>{% endif %}</td>
+      <td>{{ s.scope }}</td>
+      <td>{{ s.created_by }}</td>
+      <td>{{ s.updated }}</td>
+      {% if secrets_use_known %}<td>{% if s.used_by %}{{ s.used_by | join(', ') }}{% else %}<span class="muted">nothing</span>{% endif %}</td>{% endif %}</tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+<h4>Capability Tags</h4>
+<p class="sub">Tags are the labels that decide where a machine is built. Infrastructure
+advertises what it offers, for example <code>env:prod</code>, and templates ask
+for what they need. A machine can only be built where the two match. The table
+lists every tag, where it is set and which templates ask for it. The findings
+flag tags that no template asks for, and requests that nothing can satisfy. "No
+visible constraint" means no template asks for the tag. Scripts and other tools
+that this report cannot see may still use it.</p>
+{% if capability_tags %}
+<details class="inv">
+<summary>Tag Assignments and Consumers <span class="count">({{ capability_tags | length }} tags)</span></summary>
+<div class="tablewrap"><table class="tags">
+  <tr><th>Tag</th><th>Assigned to</th><th>Consumed by</th></tr>
+  {% for row in tag_assignments %}
+  <tr><td class="tagname"><code>{{ row.tag }}</code></td>
+      <td class="detail">{{ row.lines | join('\n') }}</td>
+      <td class="detail">{{ tag_consumers.get(row.tag, '') }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% else %}
+<p class="sub">No capability tags were found. The infrastructure data may not have been
+collected.</p>
+{% endif %}
+{{ findings_subsection('infrastructure') }}
+</div>
+</details>
+{% endif %}
+
+{# ======================= CONSUMPTION ======================= #}
+{% if visible.consumption %}
+<details class="sec" id="consumption" open>
+<summary><h2>Consumption</h2></summary>
+<div class="secbody">
+<p class="sub">What people actually use: the catalog they order from, who can see it, and the
+deployments that exist today.</p>
+<h3 class="subhead">Inventory</h3>
+<h4>Catalog</h4>
+<p class="sub">Every item people can order, how many deployments came from it and how many
+worked, whether it has a request form somebody built by hand, and which projects
+can order it. Items with no current deployments need an owner review before retirement.</p>
+{% if not catalog.get('admin_scope', True) %}
+<div class="banner">Catalog was read with <strong>entitlement-scoped</strong> access
+(no Service Broker admin role); item list may be incomplete.</div>
+{% endif %}
+{% if catalog_usage %}
+<div class="glance headline">
+  <div class="g"><b>{{ catalog_usage.item_count }}</b><span>Orderable items</span></div>
+  <div class="g"><b>{{ catalog_usage.never_ordered }}</b><span>No current deployments</span></div>
+  {% if catalog_usage.concentration_pct is defined %}
+  <div class="g"><b>{{ catalog_usage.concentration_pct }}%</b><span>From the top {{ catalog_usage.concentration_items }} items</span></div>
+  {% endif %}
+  {% if catalog_usage.failed_pct is defined %}
+  <div class="g"><b>{{ catalog_usage.failed_pct }}%</b><span>Deployments in a failed state</span></div>
+  {% endif %}
+</div>
+{% endif %}
+{% if catalog.get('items') %}
+{# The one table stakeholders read first: open, and marked out from the
+   inventory blocks around it. #}
+<details class="inv featured" open>
+<summary>Catalog Items and Deployment Usage <span class="count">({{ catalog['items'] | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Item</th><th>Type</th><th>Source</th><th>Custom form</th>
+      <th class="num">Projects</th><th class="num">Deployments</th>
+      <th class="num">Successful</th><th class="num">Failed</th></tr>
+  {% for i in catalog['items'] | sort(attribute='deployment_count', reverse=true) %}
+  <tr><td>{{ i.name }}</td><td>{{ item_type_labels.get(i.type, i.type) }}</td>
+      <td>{{ i.sourceName }}</td>
+      <td>{{ i.custom_form | default('') }}</td>
+      <td class="num">{{ i.projectIds | length }}</td>
+      <td class="num">{{ i.deployment_count }}</td>
+      <td class="num">{{ i.deployment_success_count | default(0) }}</td>
+      <td class="num">{{ i.deployment_failed_count | default(0) }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% if catalog_access %}
+<details class="inv">
+<summary>Catalog Access by Project <span class="count">({{ catalog_access | length }} sharing {{ catalog_access | length | plural('pattern') }})</span></summary>
+<div class="tablewrap"><table class="access">
+  <tr><th>Shared with</th><th class="num">Items</th><th>Catalog items</th></tr>
+  {% for g in catalog_access %}
+  <tr><td>{% if not g.project_names %}(no project - not requestable)
+      {%- elif g.all_projects %}all projects ({{ g.project_names | length }})
+      {%- elif g.project_names | length > 8 %}<details class="names">
+<summary>{{ g.project_names | length }} projects: </summary>
+{{ g.project_names | join(', ') }}</details>
+      {%- else %}{{ g.project_names | join(', ') }}{% endif %}</td>
+      <td class="num">{{ g['items'] | length }}</td>
+      <td class="detail">{{ g['items'][:20] | map(attribute='name') | join('
+') }}
+      {%- if g['items'] | length > 20 %}
+(+{{ g['items'] | length - 20 }} more){% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% else %}
+<p class="sub">This report could not work out which projects each item is shared with. The
+items API returns no project list, the entitlements API could not be read, and no
+content sharing policies could be read, which needs the Service Broker
+administrator role. See the collection gaps section.</p>
+{% endif %}
+{% endif %}
+{% if catalog.get('sources') %}
+<details class="inv">
+<summary>Content Sources <span class="count">({{ catalog['sources'] | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Source</th><th>Type</th><th class="num">Found</th><th class="num">Imported</th><th>Last import</th><th class="num">Errors</th></tr>
+  {% for s in catalog['sources'] %}
+  <tr><td>{{ s.name }}</td><td>{{ s.typeId }}</td>
+      <td class="num">{{ s.itemsFound }}</td><td class="num">{{ s.itemsImported }}</td>
+      <td>{{ s.lastImportCompletedAt | readable_date }}</td>
+      <td class="num">{{ s.lastImportErrors | length }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+
+<h4>Catalog Flow Diagrams</h4>
+<p class="sub">What runs alongside a deployment made from each catalog item, split by the part
+of its life it belongs to. Each diagram shows the events in order, the
+subscriptions that react to each, and what each one runs. Items no subscription
+reacts to are listed below the diagrams.</p>
+{% if flow_sections %}
+<p class="sub">Red is a subscription that is switched off, and "(blocking)" marks one that
+pauses the build. A dashed "(conditional)" arrow means the report cannot tell
+whether the subscription runs: its conditions test something it cannot read, or
+the item's template was not found. Machine, network and storage events
+(compute.*, network.*, storage.*) are drawn only for items whose template builds
+those resources. Template design events (blueprint.*) are left out: they fire
+when somebody edits a template, not when somebody orders the item.</p>
+{% for fs in flow_sections %}
+<details class="inv">
+{# One line: the count and its unit were split across lines, and trim_blocks ate the space between them ("3item(s)"). #}
+<summary>{{ fs.title }} <span class="count">({{ fs.diagrams | length }}{% if fs.truncated %} of {{ fs.total }}{% endif %} {{ fs.total | plural('item') }})</span></summary>
+<div class="flowwrap">
+<p class="sub">{{ fs.intro }}</p>
+{% for fd in fs.diagrams %}
+<details class="flow">
+  <summary>{{ fd.flow.item_name }}
+    {# A handful of project names still identify the item; forty of them wrap
+       over three lines and bury the name they follow. #}
+    <span class="fmeta"> - {{ item_type_labels.get(fd.flow.item_type, fd.flow.item_type) }}
+    | {{ fd.flow.deployment_count }} {{ fd.flow.deployment_count | plural('deployment') }}{% if fd.flow.projects %}
+    | {% if fd.flow.projects | length > 3 %}{{ fd.flow.projects | length }} projects
+    {%- else %}{{ fd.flow.projects | join(', ') }}{% endif %}{% endif %}</span>
+  </summary>
+  {% if mermaid_js %}
+  <pre class="mermaid">{{ fd.mermaid }}</pre>
+  {% else %}
+  <pre class="mmd-src">{{ fd.mermaid }}</pre>
+  {% endif %}
+</details>
+{% endfor %}
+{% if fs.truncated %}
+<div class="truncnote">{{ fs.truncated }} more {{ fs.truncated | plural('item') }} not shown in this part. Use --json for the raw flow data.</div>
+{% endif %}
+</div>
+</details>
+{% endfor %}
+{% endif %}
+{% if flows_without_subs %}
+<details class="inv">
+<summary>Items No Subscription Reacts To <span class="count">({{ flows_without_subs | length }})</span></summary>
+<p class="sub">No subscription listens for any event these items can raise, so a deployment
+made from them runs with no extra automation attached. A diagram would be empty,
+so they are listed here instead.</p>
+<div class="tablewrap"><table>
+  <tr><th>Item</th><th>Type</th><th class="num">Deployments</th><th>Projects</th></tr>
+  {% for f in flows_without_subs %}
+  <tr><td>{{ f.item_name }}</td>
+      <td>{{ item_type_labels.get(f.item_type, f.item_type) }}</td>
+      <td class="num">{{ f.deployment_count }}</td>
+      <td>{% if f.projects | length > 8 %}<details class="names">
+<summary>{{ f.projects | length }} projects: </summary>
+{{ f.projects | join(', ') }}</details>
+      {%- else %}{{ f.projects | join(', ') }}{% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+<h4>Deployments</h4>
+<p class="sub">Everything the platform has built and still tracks, grouped by state. The
+findings below the table detail the failed, stuck and abandoned deployments.
+A status reports the last create, update or delete on the deployment, so a
+day-2 action that failed - a power off, a reboot, a resize - is not counted
+here. Those are in the request history instead.</p>
+{% if deployment_usage %}
+<div class="glance headline">
+  <div class="g"><b>{{ deployment_usage.deployment_count }}</b><span>Deployments</span></div>
+  <div class="g"><b>{{ deployment_usage.machines }}</b><span>Machines</span></div>
+  <div class="g"><b>{{ deployment_usage.failed }}</b><span>In a failed state</span></div>
+  <div class="g"><b>{{ deployment_usage.projects }}</b><span>Projects in use</span></div>
+</div>
+{% endif %}
+{% set by_status = {} %}
+{% for d in deployments %}{% if by_status.update({d.status or '': by_status.get(d.status or '', 0) + 1}) %}{% endif %}{% endfor %}
+{% if deployments %}
+{# The meaning column earns its place only if something fills it: a build whose
+   status names this report does not know would leave a column of blanks, which
+   reads as data the collection lost. Same rule as the endpoint Status column. #}
+{% set explained = by_status | select('in', deployment_status_words) | list | length > 0 %}
+<details class="inv featured" open>
+<summary>Deployments by Status <span class="count">({{ by_status | length }} {{ by_status | length | plural('state') }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Status</th><th class="num">Count</th>{% if explained %}<th>What it means</th>{% endif %}</tr>
+  {% for status, count in by_status | dictsort %}
+  <tr><td>{{ status or '(none)' }}</td><td class="num">{{ count }}</td>
+      {% if explained %}<td>{{ deployment_status_words.get(status, '') }}</td>{% endif %}</tr>
+  {% endfor %}
+  <tr><td><strong>Total</strong></td><td class="num"><strong>{{ deployments | length }}</strong></td>
+      {% if explained %}<td></td>{% endif %}</tr>
+</table></div>
+</details>
+{% endif %}
+{% if catalog.get('adhoc_deployment_count') %}
+<p class="sub">{{ catalog['adhoc_deployment_count'] }} of these deployments
+did not come from the catalog. Somebody built them directly in Assembler or
+through the API.</p>
+{% endif %}
+{% if owner_usage %}
+<div class="glance headline">
+  <div class="g"><b>{{ owner_usage.owner_count }}</b><span>Owners</span></div>
+  {% if owner_usage.top_owner_pct is defined %}
+  <div class="g"><b>{{ owner_usage.top_owner_pct }}%</b><span>Held by {{ owner_usage.top_owner }}</span></div>
+  {% endif %}
+  {% if owner_usage.concentration_pct is defined %}
+  <div class="g"><b>{{ owner_usage.concentration_pct }}%</b><span>Held by the top {{ owner_usage.concentration_names }}</span></div>
+  {% endif %}
+  {% if owner_usage.unknown_owner_deployments is defined %}
+  <div class="g"><b>{{ owner_usage.unknown_owner_deployments }}</b><span>With no recorded owner</span></div>
+  {% endif %}
+</div>
+{% endif %}
+{% if owners %}
+<details class="inv featured">
+<summary>Deployments by Owner <span class="count">({{ owners | length }} {{ owners | length | plural('owner') }})</span></summary>
+<p class="sub" style="padding: 0 16px;">Who is responsible for what. One person who owns a large share of the
+deployments is a risk: if they leave, nobody else knows the work. The owner is
+whatever the deployment records, so people who have left still appear
+here.{% if owner_columns.access %} Project access is the highest role the owner
+still holds in a project where they own deployments, including access that
+reaches them through a group. "No grant found" means they cannot act on what they
+own. Check your identity source; it is not proof that an account has gone.{% endif %}</p>
+<div class="tablewrap"><table>
+  <tr><th>Owner</th><th class="num">Deployments</th><th class="num">Machines</th>
+      {% if owner_columns.activity %}<th>Last activity</th>{% endif %}
+      {% if owner_columns.access %}<th>Project access</th>{% endif %}</tr>
+  {% for o in owners %}
+  <tr><td>{{ o.owner }}</td>
+      <td class="num">{{ o.deployments }}</td>
+      <td class="num">{{ o.machines }}</td>
+      {% if owner_columns.activity %}<td>{{ o.last_activity }}</td>{% endif %}
+      {% if owner_columns.access %}<td>{{ o.access }}</td>{% endif %}</tr>
+  {% endfor %}
+</table></div>
+{% if owner_columns.access and owner_columns.unreadable_groups %}
+<p class="sub" style="padding: 0 16px;">{{ owner_columns.unreadable_groups }} group {{ owner_columns.unreadable_groups | plural('grant') }} could not be checked, so
+owners in those projects read as "not determined" rather than as having no
+access. See PRJ-003.</p>
+{% endif %}
+</details>
+{% endif %}
+{% if machines_by_project %}
+{% set machine_total = machines_by_project | map(attribute='machines') | map('length') | sum %}
+<details class="inv" id="machines-by-project">
+<summary>Machines by Project <span class="count">({{ machine_total }} {{ machine_total | plural('machine') }} in {{ machines_by_project | length }} {{ machines_by_project | length | plural('project') }})</span></summary>
+<p class="sub" style="padding: 0 16px;">Every machine the platform still lists, under the project that owns its
+deployment. The Hostname column uses the reported hostname, or the resource name when no
+hostname is available. Each project's table exports on its own, so a list can be handed to
+whoever owns that project. Power state and sync status are what the platform
+reported at collection time; a machine marked MISSING has already gone from the
+endpoint, which DEP-003 reports.</p>
+{% for group in machines_by_project %}
+<details class="proj">
+<summary>{{ group.project }} <span class="count">({{ group.machines | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Hostname</th>{% if machine_columns.address %}<th>Address</th>{% endif %}<th>Deployment</th><th>Power state</th><th>Sync status</th><th>Owner</th><th>Created</th></tr>
+  {% for m in group.machines %}
+  <tr><td>{{ m.machine }}</td>{% if machine_columns.address %}<td>{{ m.address }}</td>{% endif %}<td>{{ m.deployment }}</td><td>{{ m.power_state }}</td>
+      <td>{{ m.sync_status }}</td><td>{{ m.owner }}</td><td>{{ m.created }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endfor %}
+</details>
+<!-- /machines-by-project -->
+{% endif %}
+{% if deleted_deployments %}
+<details class="inv">
+<summary>Recently Deleted Deployments <span class="count">({{ deleted_deployments | length }})</span></summary>
+<p class="sub" style="padding: 0 16px;">These deployments are deleted but not yet removed for good, so they can still be
+read. They are history rather than part of the environment, and are counted
+nowhere above. Anything here in a failed state was deleted without being fixed,
+which is what DEP-007 reports.</p>
+<div class="tablewrap"><table>
+  <tr><th>Deployment</th><th>Project</th><th>Status</th><th>Owner</th><th>Last updated</th></tr>
+  {% for d in deleted_deployments %}
+  <tr><td>{{ d.name }}</td>
+      <td>{{ d.projectName }}</td>
+      <td>{{ d.status }}</td>
+      <td>{{ d.ownedBy }}</td>
+      <td>{{ (d.lastUpdatedAt or '')[:10] }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if request_outcomes %}
+<details class="inv">
+<summary>Request Failure Rate <span class="count">{% if request_outcomes.completed %}({{ request_outcomes.failed }} of {{ request_outcomes.completed }} completed {{ request_outcomes.completed | plural('request') }} failed, {{ request_outcomes.failed_pct }}%){% else %}({{ request_outcomes.total }} {{ request_outcomes.total | plural('request') }}, none finished yet){% endif %}</span></summary>
+<p class="sub" style="padding: 0 16px;">What has been failing, rather than what is broken right now. A request that
+failed and was tried again still counts here, and so does one whose deployment
+was later deleted. The counts come from {{ request_outcomes.total }} {{ request_outcomes.total | plural('request') }}
+across {{ request_outcomes.deployments_scanned }} {{ request_outcomes.deployments_scanned | plural('deployment') }}.
+{% if request_outcomes.window_from %}The oldest request the platform still holds
+is from {{ request_outcomes.window_from }}, so this is a rate for that period and
+not an all-time figure. The platform deletes old requests, and anything already
+deleted is missing.{% else %}No request carried a date, so the period this covers
+is unknown.{% endif %}
+{% if request_outcomes.deployments_unread %} {{ request_outcomes.deployments_unread }}
+{{ request_outcomes.deployments_unread | plural('deployment') }} could not be read, so their requests are missing from these
+counts.{% endif %}</p>
+<div class="tablewrap"><table>
+  <tr><th>Status</th><th class="num">Count</th></tr>
+  {% for status, count in request_outcomes.by_status %}
+  <tr><td>{{ status }}</td><td class="num">{{ count }}</td></tr>
+  {% endfor %}
+  <tr><td><strong>Failed, of {{ request_outcomes.completed }} completed</strong></td><td class="num"><strong>{{ request_outcomes.failed }} ({{ request_outcomes.failed_pct }}%)</strong></td></tr>
+</table></div>
+{% if request_outcomes.uncounted %}
+<p class="sub" style="padding: 0 16px;">The rate counts failures against the requests that finished, one way or the
+other. {{ request_outcomes.uncounted }} {{ request_outcomes.uncounted | plural('request') }} were cancelled, refused by an
+approver, or are still running. None of those is a failure, and to count them
+would report the platform doing as it was told as something going wrong.</p>
+{% endif %}
+{% if request_outcomes.failing_targets %}
+<p class="sub" style="padding: 0 16px;">Where the failures happen. One type of request that fails again and again is a
+fault to fix at its source. Failures spread thinly across many types usually
+point to capacity or to a connection that is not healthy. A day-2 request names
+its action. A request to build something names the catalog item or template it
+used. Anything else, such as onboarding or a lease that ended, carries the
+platform's own name for it. Rows are ordered by the number of failures, and the
+rate shows how much of that request type fails.</p>
+<div class="tablewrap"><table>
+  <tr><th>Requested</th><th class="num">Failed</th><th class="num">Completed</th><th class="num">Failure rate</th></tr>
+  {% for t in request_outcomes.failing_targets %}
+  <tr><td>{{ t.what }}</td><td class="num">{{ t.failed }}</td><td class="num">{{ t.completed }}</td>
+      <td class="num">{{ t.rate }}%</td></tr>
+  {% endfor %}
+</table></div>
+{% endif %}
+</details>
+{% else %}
+<p class="sub">Request history was not collected, so the failure counts above describe the
+deployments currently recorded in a failed state. They do not show what failed and was tried
+again, or what failed and was then deleted. To measure that, run the tool with
+--request-history, which makes one API call for each deployment.</p>
+{% endif %}
+{{ findings_subsection('consumption') }}
+</div>
+</details>
+{% endif %}
+
+{# ================== POLICIES AND GOVERNANCE ================== #}
+{% if visible.governance %}
+<details class="sec" id="governance" open>
+<summary><h2>Policies and Governance</h2></summary>
+<div class="secbody">
+<p class="sub">Policies are the platform's rules. They set how long machines may live, what
+needs approval, who can see which catalog items, and how much a project may use.
+Somebody needed every policy here at some point, so check each one to see whether
+it still applies. The approvers a policy names must still exist in your identity
+source. If they do not, requests wait without warning until the automatic
+decision applies. A policy scoped to "organization" covers every project.
+Policies scoped to one project usually pre-date organization scope: POL-001 flags
+identical copies you can merge, and POL-003 flags a project covered by an
+organization policy as well as its own copy of the same type.</p>
+<h3 class="subhead">Inventory</h3>
+{% if policies_by_type %}
+{% for type_key, plist in policies_by_type | dictsort %}
+{% if type_key == 'approval' and governance.get('approval_policies') %}
+<details class="inv">
+<summary>{{ policy_type_labels.get(type_key, type_key ~ ' Policies') }} <span class="count">({{ governance['approval_policies'] | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Scope</th><th>Enforcement</th><th class="num">Level</th>
+      <th>Mode</th><th>Approvers</th><th>On expiry</th><th>Gated actions</th></tr>
+  {% for p in governance['approval_policies'] %}
+  <tr><td>{{ p.name }}</td>
+      <td>{{ project_names.get(p.projectId, p.projectId) if p.projectId else 'organization' }}</td>
+      <td>{{ p.enforcementType or '?' }}</td>
+      <td class="num">{{ p.level if p.level is not none else '?' }}</td>
+      <td>{{ p.approvalMode or '?' }}</td>
+      <td>{% for a in p.approvers %}<code>{{ a }}</code> {% else %}?{% endfor %}</td>
+      <td>{{ p.autoApprovalDecision or '?' }}{% if p.autoApprovalExpiry %} after {{ p.autoApprovalExpiry }}d{% endif %}</td>
+      <td>{% for act in p.actions %}<code>{{ act }}</code> {% endfor %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% if approval_gates %}
+<details class="inv">
+<summary>Approval Flow Diagrams</summary>
+<div class="flowwrap">
+<p class="sub">Each diagram is one chain of approval gates. A request for the actions in the
+first node stops at every gate shown, in level order, and goes ahead only when
+each gate approves it. A rejection at any gate denies the whole request, shown by
+the dotted lines. If nobody decides in time, the policy's automatic decision
+applies. Mode ANY_OF needs one of the policy's approvers, ALL_OF needs all of
+them. The table above names them, as it names the policies behind a gate that
+reads "N per-project policies". A gate marked "(scope criteria apply)" holds only
+for requests that match conditions this report does not check.</p>
+{% for gd in approval_gates %}
+<p class="sub"><strong>{{ gd.chain.context }}</strong></p>
+{% if mermaid_js %}
+<pre class="mermaid">{{ gd.mermaid }}</pre>
+{% else %}
+<pre class="mmd-src">{{ gd.mermaid }}</pre>
+{% endif %}
+{% endfor %}
+{% if approval_gates_note %}<p class="sub">{{ approval_gates_note }}</p>{% endif %}
+</div>
+</details>
+{% elif approval_gates_note %}
+{# No chain was drawable at all (every definition unreadable): the honesty
+   note must still render, or empty Gated-actions cells go unexplained. #}
+<p class="sub">{{ approval_gates_note }}</p>
+{% endif %}
+{% elif type_key == 'entitlement' and content_sharing %}
+<details class="inv">
+<summary>Content Sharing Policies <span class="count">({{ content_sharing | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Scope</th><th>Enforcement</th><th>Shared content</th></tr>
+  {% for p in content_sharing %}
+  <tr><td>{{ p.name }}</td><td>{{ p.scope }}</td><td>{{ p.enforcement or '?' }}</td>
+      <td class="detail">{{ p.shares | join('\n') }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% else %}
+<details class="inv">
+<summary>{{ policy_type_labels.get(type_key, type_key ~ ' Policies') }} <span class="count">({{ plist | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Scope</th><th>Enforcement</th></tr>
+  {% for p in plist %}
+  <tr><td>{{ p.name }}</td>
+      <td>{{ project_names.get(p.projectId, p.projectId) if p.projectId else 'organization' }}</td>
+      <td>{{ p.enforcementType | default('?') }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% endfor %}
+{% else %}
+<p class="sub">No policies were collected.</p>
+{% endif %}
+{% set pending = governance.get('approval_requests', []) | selectattr('status', 'equalto', 'PENDING') | list %}
+{% if governance.get('approval_requests') %}
+<details class="inv">
+<summary>Approval Requests <span class="count">({{ governance['approval_requests'] | length }} total,
+{{ pending | length }} pending)</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Deployment / request</th><th>Status</th><th>Requested by</th>
+      <th>Created</th><th>Policy</th><th>Action</th></tr>
+  {% for a in governance['approval_requests'] %}
+  <tr><td>{{ a.deploymentName or a.id }}</td><td>{{ a.status }}</td>
+      <td>{{ a.requestedBy }}</td><td>{{ (a.createdAt or '')[:16] }}</td>
+      <td>{{ a.policyName }}</td><td>{{ a.actionName }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{{ findings_subsection('governance') }}
+</div>
+</details>
+{% endif %}
+
+{# ==================== DESIGN AND TEMPLATES ==================== #}
+{% if visible.design %}
+<details class="sec" id="design" open>
+<summary><h2>Design and Templates</h2></summary>
+<div class="secbody">
+<p class="sub">The building blocks people order from: cloud templates, which are the designs
+that say what gets built; shared property groups; and the custom resource types
+and day-2 actions the platform team has added.</p>
+<h3 class="subhead">Inventory</h3>
+{% if blueprints %}
+<details class="inv">
+<summary>Cloud Templates (Blueprints) <span class="count">({{ blueprints | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Project</th><th>Status</th><th>Valid</th>
+      <th class="num">Versions</th><th class="num">Released</th>
+      <th class="num">Constraint tags</th><th>Resource types</th></tr>
+  {% for b in blueprints %}
+  <tr><td>{{ b.name }}</td><td>{{ b.projectName or b.projectId }}</td>
+      <td>{{ b.status }}</td>
+      <td>{% if b.parse_error %}parse error{% elif b.valid %}yes{% else %}NO{% endif %}</td>
+      <td class="num">{{ b.totalVersions }}</td>
+      <td class="num">{{ b.totalReleasedVersions }}</td>
+      <td class="num">{{ b.constraint_tags | length }}</td>
+      <td>{% for rt in b.resource_types %}<code>{{ rt }}</code> {% endfor %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if blueprints %}
+<h4>Template Placement</h4>
+<p class="sub">Where each template can actually be built. The resources in a template ask for
+capability tags, which the platform calls a constraint. The platform matches
+those against the tags on cloud zones, profiles and compute resources, and a resource can
+only be built where every hard constraint is met. Only the places the projects
+that can request the template are able to reach are counted, because that is
+where its requests are placed. A diagram is drawn for the
+templates where that is worth a look: one asks for something nothing offers, or
+something only one place offers.</p>
+{% if placement_diagrams %}
+<details class="inv">
+{# One line: the count and its unit split across lines lose the space between them. #}
+<summary>Placement Diagrams <span class="count">({{ placement_diagrams | length }}{% if placement_truncated %} of {{ placement_diagrams | length + placement_truncated }}{% endif %} {{ (placement_diagrams | length + placement_truncated) | plural('template') }})</span></summary>
+<div class="flowwrap">
+<p class="sub">Red is a hard constraint that nothing satisfies: every build of that resource
+fails, and TAG-001 reports it as well. Yellow is a constraint that one place
+satisfies. The constraint can currently be satisfied, but that zone, profile or compute resource is a
+single point of failure for the template. The grey dashed shapes are the two
+cases that are neither: a soft constraint that matches nothing, which the
+platform ignores rather than fails, and a constraint the platform fills in from
+an answer given at request time. That one names what decides it rather than the
+expression behind it, and where the tags the answer can produce are written
+down, either in the template or in the values the request form offers for the
+input it reads, each hangs off it on a dotted arrow with what it would match, so
+an answer that leads nowhere is visible without the report knowing which answer
+a request gives. Where the form fills that list by running an Orchestrator
+action, the node names the action: this report reads, so it does not run it to
+find out. A place that several constraints share is drawn once,
+so arrows that meet at one shape show that they all depend on it. Where a
+resource carries more than one constraint, dotted arrows marked "together" lead
+to what satisfies all of them at once, which is what the platform needs: red
+where nothing does, and yellow where exactly one place does. A grey shape on
+a dotted arrow is not a place at all. It counts the projects that add the same tag
+through their own network or storage constraints, which is one more condition to
+meet rather than somewhere to build.
+{% if placement_note %} {{ placement_note }}{% endif %}</p>
+{% for pd in placement_diagrams %}
+<details class="flow">
+  <summary>{{ pd.placement.blueprint_name }}
+    <span class="fmeta"> - {{ pd.placement.project }}{% if pd.placement.requesting_projects %} | requestable from {{ pd.placement.requesting_projects | length }} {{ pd.placement.requesting_projects | length | plural('project') }}{% endif %}{% if pd.placement.cannot_place %} | {{ pd.placement.cannot_place | length }} of them cannot place it{% endif %}{% if pd.placement.counts.unsatisfied %} | {{ pd.placement.counts.unsatisfied }} unsatisfied{% endif %}{% if pd.placement.counts.single %} | {{ pd.placement.counts.single }} with one place only{% endif %}{% if pd.placement.counts.dead_options %} | {{ pd.placement.counts.dead_options }} request-time {{ pd.placement.counts.dead_options | plural('value') }} that match nothing{% endif %}</span>
+  </summary>
+  {% if mermaid_js %}
+  <pre class="mermaid">{{ pd.mermaid }}</pre>
+  {% else %}
+  <pre class="mmd-src">{{ pd.mermaid }}</pre>
+  {% endif %}
+</details>
+{% endfor %}
+{% if placement_truncated %}
+<div class="truncnote">{{ placement_truncated }} more {{ placement_truncated | plural('template') }} not shown. Use --json for the constraint data.</div>
+{% endif %}
+</div>
+</details>
+{% elif placement_note %}
+<p class="sub">{{ placement_note }}</p>
+{% endif %}
+{% endif %}
+{% if design.get('property_groups') %}
+<details class="inv">
+<summary>Property Groups <span class="count">({{ design['property_groups'] | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Type</th><th class="num">Properties</th></tr>
+  {% for g in design['property_groups'] %}
+  <tr><td>{{ g.name }}</td><td>{{ g.type | default('?') }}</td>
+      <td class="num">{{ (g.properties or {}) | length }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% macro binding_cell(bindings) -%}
+{%- for b in bindings -%}
+{{ b.action }}: {{ b.runs }}{% if b.kind == 'abx' %} (ABX){% endif %}{% if b.confirmed is none and b.kind != 'unknown' %} <span class="muted">not confirmed</span>{% elif b.confirmed is sameas false %} <span class="bad">missing</span>{% endif %}{% if not loop.last %}<br>{% endif %}
+{%- endfor -%}
+{%- endmacro %}
+{% if design.get('custom_resource_types') %}
+<details class="inv">
+<summary>Custom Resources <span class="count">({{ design['custom_resource_types'] | length }})</span></summary>
+{% if design.bindings_shown %}
+<p class="sub" style="padding: 0 16px;">What each lifecycle step runs. A workflow the run could not confirm on any
+Orchestrator it could read is marked, not called missing: an external or
+ACL-hidden workflow answers the same way as a deleted one. An ABX action missing
+from the inventory is a real absence, and EXT-009 lists it.</p>
+{% endif %}
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Resource type</th>{% if design.bindings_shown %}<th>Lifecycle</th>{% endif %}</tr>
+  {% for c in design['custom_resource_types'] %}
+  <tr><td>{{ c.displayName or c.name or c.resourceType }}</td>
+      <td><code>{{ c.resourceType | default('?') }}</code></td>
+      {% if design.bindings_shown %}<td>{{ binding_cell(c.bindings) }}</td>{% endif %}</tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{% if design.get('custom_resource_actions') %}
+<details class="inv">
+<summary>Resource Actions <span class="count">({{ design['custom_resource_actions'] | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Resource type</th>{% if design.bindings_shown %}<th>Runs</th>{% endif %}</tr>
+  {% for c in design['custom_resource_actions'] %}
+  <tr><td>{{ c.displayName or c.name }}</td>
+      <td><code>{{ c.resourceType | default('?') }}</code></td>
+      {% if design.bindings_shown %}<td>{{ binding_cell(c.bindings) }}</td>{% endif %}</tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{{ findings_subsection('design') }}
+</div>
+</details>
+{% endif %}
+
+{# ======================= EXTENSIBILITY ======================= #}
+{% if visible.extensibility %}
+<details class="sec" id="extensibility" open>
+<summary><h2>Extensibility</h2></summary>
+<div class="secbody">
+<p class="sub">The custom automation attached to the platform: scripts and workflows that run
+by themselves when somebody requests, builds, changes or removes something. Most
+of the behaviour that is specific to this organisation lives here. It is also the
+hardest part to understand from the outside, which is why this report examines it
+most closely.</p>
+<h3 class="subhead">Inventory</h3>
+<h4>Subscriptions</h4>
+<p class="sub">A subscription is a rule: when a chosen event happens, for example "a machine is
+about to be built", run a chosen script or workflow. A <em>blocking</em>
+subscription pauses the build until its work finishes. A <em>disabled</em> one
+never runs.</p>
+{% if subscriptions %}
+<details class="inv">
+<summary>Event Subscriptions <span class="count">({{ subscriptions | length }})</span></summary>
+<div class="tablewrap"><table class="subs">
+  <tr><th>Name</th><th>Topic</th><th>Blocking</th><th>Disabled</th><th>Scope</th><th>What it runs</th><th>Conditions</th></tr>
+  {% for s in subscriptions %}
+  <tr><td>{{ s.name }}{% if s.builtin %} <span class="sub">(built-in)</span>{% endif %}</td><td><code>{{ s.eventTopicId }}</code></td>
+      <td>{% if s.blocking %}<strong>yes</strong>{% else %}no{% endif %}</td>
+      <td>{% if s.disabled %}yes{% else %}no{% endif %}</td>
+      <td>{{ s.scope }}</td>
+      <td>{{ (s.runnableType or '').replace('extensibility.', '') }}: {{ s.runnableName or s.runnableId }}</td>
+      <td class="crit">{% if s.criteria %}<code>{{ s.criteria }}</code>{% if criteria_refs.get(s.id) %}<div class="sub">{{ criteria_refs[s.id] }}</div>{% endif %}{% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% elif hidden_system_subs %}
+<p class="sub">Only the platform's own built-in subscriptions exist ({{ hidden_system_subs }}
+hidden). Nobody has created a subscription on this system. To show the built-in
+ones, run the tool with <code>--include-system-subscriptions</code>.</p>
+{% else %}
+<p class="sub">No subscriptions were collected. The account may not hold the right role, or the
+event service was unavailable.</p>
+{% endif %}
+
+<h4>Orchestrator Workflows</h4>
+{% if vro.get('workflows') %}
+<p class="sub">Automation Orchestrator, once called vRO, is the platform's main workflow
+engine. These are the workflows this environment uses{% if vro_endpoint_phrase %},
+looked up on {{ vro_endpoint_phrase }}{% endif %}. The report looks up only the
+workflows in use, so the built-in library never appears. Complexity comes from
+the structure of each workflow, not from its scripts. A HIGH rating means real
+design effort went into it, and the same effort is needed to understand, change
+or replace it.</p>
+<details class="inv">
+<summary>Referenced Orchestrator Workflows <span class="count">({{ vro['workflows'] | selectattr('resolved') | list | length }} resolved of {{ vro['workflows'] | length }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Orchestrator</th><th>Used by</th><th class="num">Steps</th><th class="num">Decisions</th><th class="num">Sub-workflows</th><th>Complexity</th></tr>
+  {% for wf in vro['workflows'] %}
+  <tr><td>{% if wf.resolved %}{{ wf.name }}{% else %}<code>{{ wf.id }}</code> <span class="sub">(not found on any Orchestrator this report could reach)</span>{% endif %}</td>
+      <td>{{ wf.endpoint_source }}</td>
+      <td>{{ wf.used_by | join(', ') }}</td>
+      <td class="num">{% if wf.structure %}{{ wf.structure['items'] }}{% endif %}</td>
+      <td class="num">{% if wf.structure %}{{ wf.structure.decisions }}{% endif %}</td>
+      <td class="num">{% if wf.structure %}{{ wf.structure.sub_workflows }}{% endif %}</td>
+      <td>{% if wf.complexity %}{{ wf.complexity }}{% if wf.structure and wf.structure.user_interactions %} (user interaction){% endif %}{% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% elif vro.get('endpoints') %}
+<p class="sub">No Orchestrator workflow references were found ({% for e in vro['endpoints'] %}{{ e.source }}:
+{% if e.reachable %}reachable{% else %}unreachable{% endif %}{% if not loop.last %},
+{% endif %}{% endfor %}).</p>
+{% endif %}
+
+<h4>Orchestrator Actions</h4>
+{% if vro.get('actions') %}
+<p class="sub">Actions are the reusable pieces of code that workflows call inside Automation
+Orchestrator. The platform team writes them, and this report checks each one
+automatically for signs of poor code quality. Runtimes: 
+{%- for rt, n in (vro.get('action_runtimes', {}) | dictsort) %}{{ n }} {{ rt }}{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+<p class="sub">Built-in <code>com.vmware.*</code> modules are left out
+({{ vro.get('builtin_actions_excluded', 0) }} skipped). This report reads Python
+in full, including unused and undefined names.
+{% if meta.get('powershell_parser') %}It reads PowerShell with PowerShell's own
+engine{% else %}It checked PowerShell with simple rules only, because no
+PowerShell program was available on the computer that ran the report{% endif %},
+and {% if meta.get('javascript_parser') %}it reads JavaScript with
+esprima{% else %}it checked JavaScript with simple rules only, because esprima
+was not available{% endif %}. Neither finds unused variables. The Comments and
+Error handling columns are measurements, not findings: code with no error
+handling can be a sound choice, while handlers that hide the error are
+flagged.{% if meta.get('pedantic') %} Pedantic mode was on, so minor issues are
+counted alongside the more serious ones.{% endif %}</p>
+<details class="inv">
+<summary>Orchestrator Actions <span class="count">({{ vro['actions'] | length }} customer {{ vro['actions'] | length | plural('action') }})</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Action (full name)</th><th>Orchestrator</th><th>Language</th><th class="num">Lines</th><th class="num">Comments</th><th>Error handling</th><th class="num">Quality signals</th></tr>
+  {% for a in vro['actions'] %}
+  <tr><td><code>{{ a.fqn }}</code></td>
+      <td>{{ a.endpoint_source }}</td>
+      <td>{{ a.runtime }}</td>
+      <td class="num">{{ a.lines if a.lines is not none else '' }}</td>
+      <td class="num">{% if a.analysis and a.analysis.comment_ratio is defined %}{{ (a.analysis.comment_ratio * 100) | round | int }}%{% endif %}</td>
+      <td>{% if a.analysis %}{{ 'yes' if a.analysis.has_error_handling else 'no' }}{% endif %}</td>
+      <td class="num">{{ a.signal_count }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+
+<h4>ABX Actions</h4>
+<p class="sub">ABX actions are small scripts the platform runs at set points, for example
+"after a machine is built, add it to the CMDB". This report reads the code of
+each one for quality signals and rates how complex it is. An action should stay
+short, so HIGH means it has grown into something bigger.</p>
+{% if extensibility.get('abx_actions') %}
+<details class="inv">
+<summary>ABX Actions Inventory <span class="count">({{ extensibility['abx_actions'] | length }})</span></summary>
+{% if abx_run_evidence.collected %}
+<p class="sub">Last run comes from a lookup for each action against the run history the
+platform keeps ({{ abx_run_evidence.total_runs }} recorded {{ abx_run_evidence.total_runs | plural('run') }} across these
+actions).
+{% if abx_run_evidence.complete %} "none recorded" means the platform holds no run
+for that action. It deletes old runs, so this is not proof the action never ran.
+EXT-006 lists them.
+{% if abx_run_evidence.oldest_run_label %} The oldest record still held is from
+<strong>{{ abx_run_evidence.oldest_run_label }}</strong>, so "none recorded" means
+no run since at least that date. {% endif %} A row that shows only a run count is
+an action whose most recent run could not be put in a verified order.
+{% else %} The lookups stopped part way, so an empty cell means "not looked up",
+never "has not run". {% endif %}</p>
+{% endif %}
+<div class="tablewrap"><table>
+  <tr><th>Name</th><th>Project</th><th>Language</th><th>Complexity</th>{% if abx_run_evidence.collected %}<th>Last run</th>{% endif %}<th class="num">Comments</th><th>Error handling</th><th class="num">Quality signals</th></tr>
+  {% for a in extensibility['abx_actions'] %}
+  <tr><td>{{ a.name }}</td>
+      <td>{{ project_names.get(a.projectId, a.projectId) }}</td>
+      <td>{{ a.runtime or 'flow' }}{% if a.runtimeVersion %} {{ a.runtimeVersion }}{% endif %}</td>
+      <td>{{ a.complexity or '' }}</td>
+      {% if abx_run_evidence.collected %}<td>{{ a.last_run_label }}</td>{% endif %}
+      <td class="num">{% if a.analysis and a.analysis.comment_ratio is defined %}{{ (a.analysis.comment_ratio * 100) | round | int }}%{% endif %}</td>
+      <td>{% if a.analysis %}{{ 'yes' if a.analysis.has_error_handling else 'no' }}{% endif %}</td>
+      <td class="num">{{ a.signal_count }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% else %}
+<p class="sub">No ABX actions were collected.</p>
+{% endif %}
+{{ findings_subsection('extensibility') }}
+</div>
+</details>
+{% endif %}
+
+{# ======================= REPLATFORMING ======================= #}
+{% if visible.replatforming %}
+<details class="sec" id="replatforming" open>
+<summary><h2>Replatforming</h2></summary>
+<div class="secbody">
+<p class="sub">Initial replacement assessment for Terraform, GitLab CI/CD, Ansible Automation
+Platform and OpenShift, with ServiceNow or a similar service management portal for requests
+and approvals.</p>
+{% if replacement.rows %}
+<div class="estate">
+<div class="cap">Initial assessment &mdash; content conversion complexity</div>
+<div class="glance">
+<div class="g"><b>{{ replacement.rows | length }}</b><span>Catalog items assessed</span></div>
+{% for label, count in replacement.counts.items() %}
+<div class="g"><b>{{ count }}</b><span>{{ label }}</span></div>
+{% endfor %}
+<div class="g"><b>{{ replacement.deployments if replacement.deployments is not none else 'Unknown' }}</b><span>Associated deployments</span></div>
+</div>
+</div>
+{% endif %}
+<p class="sub">Ratings use observed resources and attached automation; they are not effort estimates.
+Live deployments need a separate import, rebuild or retirement plan. Missing evidence means
+Needs review. Workflow internals and packaged ABX code are not assessed.</p>
+{% if capability_map %}
+<h3 class="subhead">Inventory</h3>
+<details class="inv" open>
+<summary>Capability Replacement Map <span class="count">({{ capability_map | length }} capabilities in use)</span></summary>
+<div class="tablewrap"><table>
+  <tr><th>Capability in use</th><th>Current usage</th><th>Proposed replacement</th><th>Key migration consideration</th></tr>
+  {% for row in capability_map %}
+  <tr><td><strong>{{ row.capability }}</strong></td>
+      <td>{{ row.evidence }}</td>
+      <td>{{ row.recommended }}{% if row.alternatives %}
+        <details><summary>Alternatives</summary>{{ row.alternatives }}</details>{% endif %}</td>
+      <td class="sub">{{ row.notes }}</td></tr>
+  {% endfor %}
+</table></div>
+</details>
+{% endif %}
+{{ findings_subsection('replatforming') }}
+</div>
+</details>
+{% endif %}
+{# ======================= COLLECTION GAPS ======================= #}
+{% if visible.system and findings_by_section.get('system') %}
+<details class="sec" id="system" open>
+<summary><h2>Collection Gaps</h2></summary>
+<div class="secbody">
+<p class="sub">What this run could not read. Every check that stayed silent, and every claim
+the report held back, comes from one of these. Fix the access and run the report
+again for a complete picture.</p>
+{{ section_findings('system') }}
+</div>
+</details>
+{% endif %}
+
+<footer>
+Generated by vcf-automation-assessment-tool {{ meta.tool_version }} against {{ meta.url }} at
+{{ meta.generated_at | readable_date }}. Data is read-only; no changes were made to the platform.
+</footer>
+</div>
+</div>
+
+<script>
+// CSV export for every data table, built from the DOM so it always matches
+// what the report shows. Self-contained like everything else: the file is
+// assembled in memory and downloaded via a Blob URL, no network involved.
+// When a finding's table is capped, the truncation note is appended as a
+// final row so the export says it is partial instead of pretending.
+function csvField(text) {
+  var value = text
+    .split("\n")
+    .map(function (line) { return line.trim().replace(/\s+/g, " "); })
+    .filter(Boolean)
+    .join("\n");
+  // A leading =, +, -, @ or tab opens as a live formula when the export
+  // lands in Excel (CSV injection); a leading apostrophe renders it as the
+  // inert text it is. Names come from the assessed platform, so they are
+  // not this report's to trust.
+  if (/^[=+\-@\t]/.test(value)) value = "'" + value;
+  return /[",\n]/.test(value) ? '"' + value.replace(/"/g, '""') + '"' : value;
+}
+function csvFromTable(table, note) {
+  var lines = [];
+  for (var r = 0; r < table.rows.length; r++) {
+    var cells = table.rows[r].cells;
+    var fields = [];
+    for (var c = 0; c < cells.length; c++) fields.push(csvField(cells[c].textContent));
+    lines.push(fields.join(","));
+  }
+  if (note) lines.push(csvField("# " + note));
+  return lines.join("\r\n") + "\r\n";
+}
+function csvSlug(text) {
+  return text
+    .replace(/\(.*$/, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+function csvName(wrap) {
+  var finding = wrap.closest(".finding");
+  if (finding && finding.id) {
+    var title = finding.querySelectorAll("strong")[1];
+    return finding.id + (title ? "-" + csvSlug(title.textContent) : "");
+  }
+  var host = wrap.closest("details");
+  var summary = host && host.querySelector(":scope > summary");
+  return (summary && csvSlug(summary.textContent)) || "table";
+}
+document.querySelectorAll(".tablewrap").forEach(function (wrap) {
+  var table = wrap.querySelector("table");
+  if (!table || table.rows.length < 2) return;
+  var button = document.createElement("button");
+  button.type = "button";
+  button.className = "csvbtn";
+  button.textContent = "Export CSV";
+  button.title = "Export all rendered rows, including rows hidden by search or filters";
+  button.addEventListener("click", function () {
+    var note = wrap.querySelector(".truncnote");
+    var blob = new Blob(
+      // Leading BOM so Excel detects UTF-8 instead of mangling accents.
+      ["\ufeff" + csvFromTable(table, note ? note.textContent.trim() : "")],
+      { type: "text/csv;charset=utf-8" }
+    );
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = csvName(wrap) + ".csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+  });
+  wrap.parentNode.insertBefore(button, wrap);
+});
+</script>
+
+<script>
+// A #anchor may point inside a chapter the reader has collapsed (or into a
+// closed inventory block). Open every enclosing <details> first, then scroll:
+// the browser's own jump happens against hidden content otherwise.
+function revealTarget(hash) {
+  if (!hash || hash.length < 2) return;
+  var target = document.getElementById(decodeURIComponent(hash.slice(1)));
+  if (!target) return;
+  var host = target.closest("details");
+  while (host) {
+    host.open = true;
+    host = host.parentElement && host.parentElement.closest("details");
+  }
+  target.scrollIntoView();
+}
+document.addEventListener("click", function (event) {
+  var link = event.target.closest && event.target.closest('a[href^="#"]');
+  if (link) revealTarget(link.getAttribute("href"));
+});
+revealTarget(location.hash);
+</script>
+
+{% if mermaid_js %}
+<script>{{ mermaid_js | safe }}</script>
+<script>
+mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "neutral" });
+// Diagrams inside a collapsed <details> mis-size if rendered while hidden.
+// Details also nest (the flow list sits inside a collapsible block), so a
+// toggle may reveal only some of the diagrams beneath it: render exactly the
+// ones whose every enclosing <details> is now open, each at most once.
+var diagramWork = Promise.resolve();
+function renderRevealed(scope) {
+  var pending = [];
+  scope.querySelectorAll("pre.mermaid").forEach(function (p) {
+    if (p.dataset.rendered) return;
+    var a = p.closest("details");
+    while (a && a.open) a = a.parentElement && a.parentElement.closest("details");
+    if (a) return; // still hidden inside a closed container
+    p.dataset.rendered = "1";
+    pending.push(p);
+  });
+  // A failed diagram keeps its raw source visible; the rejection is
+  // swallowed so one bad diagram cannot spam the console per toggle.
+  if (pending.length) {
+    diagramWork = diagramWork.then(function () { return mermaid.run({ nodes: pending }); }).catch(function () {});
+  }
+  return diagramWork;
+}
+renderRevealed(document);
+document.querySelectorAll("details").forEach(function (d) {
+  if (!d.querySelector("pre.mermaid")) return;
+  d.addEventListener("toggle", function () {
+    if (d.open) renderRevealed(d);
+  });
+});
+</script>
+{% endif %}
+<script>{{ report_js | safe }}</script>
+</body>
+</html>

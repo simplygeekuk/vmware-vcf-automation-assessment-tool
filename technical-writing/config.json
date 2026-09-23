@@ -1,0 +1,52 @@
+{
+  "notes": "An assessment tool for VCF Automation estates. The README and the sdd-workflow specifications are read by engineers deciding whether to run it and by the people acting on its findings, so precision comes before conformity to any style guide.",
+  "version": 3,
+  "profile": "technical-readability",
+  "asd_ste100": {
+    "standard": {
+      "name": "ASD-STE100",
+      "issue": 9
+    },
+    "notes": "Advisory evidence under this profile, not a standard this tool claims to meet. Issue 9 is the only one installed."
+  },
+  "style": {
+    "rules": [
+      {
+        "id": "product-name-vcf-automation",
+        "source": "requirement",
+        "topic": "terminology",
+        "guidance": "The product is VCF Automation. Use Aria Automation only where a historical version, a UI label, an API name, a repository name or a quoted source requires it.",
+        "notes": "Naming the superseded product misidentifies which release a reader is on, and the two are not interchangeable in the API surface this tool reads."
+      }
+    ],
+    "notes": "Ranks 2 to 4, above both style guides. Kept short on purpose: a rule here is one a reviewer has to apply by hand every time, so it earns its place or goes."
+  },
+  "enabled": true,
+  "spelling": {
+    "mode": "british",
+    "directive": "Project house style. Rank 4 under technical-readability, which is above both Google and ASD-STE100 Issue 9.",
+    "notes": "Also the house-style spelling rule under this profile: style_policy.py generates it from this field, and only british outranks Google's American spelling."
+  },
+  "paths": [
+    {
+      "glob": "README.md",
+      "mode": "mixed",
+      "default_mode": "descriptive",
+      "notes": "Descriptive project overview and a findings reference, with procedural Install, Run and Development sections. Write those three as procedures and the rest as description."
+    },
+    {
+      "glob": "specs/**/tasks.md",
+      "mode": "procedural",
+      "notes": "sdd-workflow task lists. Each entry is an instruction, so the 20-word procedural sentence limit applies."
+    },
+    {
+      "glob": "specs/**/spec.md",
+      "mode": "descriptive",
+      "notes": "sdd-workflow specifications. Requirements and architecture decisions are description, not instruction."
+    }
+  ],
+  "exclude": [
+    "CHANGELOG.md",
+    "docs/**"
+  ]
+}

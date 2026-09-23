@@ -1,0 +1,923 @@
+{
+  "version": 2,
+  "standard": {
+    "name": "ASD-STE100",
+    "issue": 9
+  },
+  "technical_nouns": [
+    {
+      "term": "ABX action",
+      "definition": "A short script run by the extensibility service in response to an event or a day-2 operation.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "src/vcf_automation_assessment_tool/models.py ITEM_TYPE_LABELS product label; docs/vcf_automation_oas_specs/8.x/abx.json (Action schema)",
+      "notes": "ACTION alone is not approved as a noun and sends the writer to step, procedure or task. Keep the ABX prefix and its capitals: it is the product's name for the object."
+    },
+    {
+      "term": "action",
+      "definition": "An operation offered against a resource or run by extensibility.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json (Resource Actions tag); docs/vcf_automation_oas_specs/8.x/abx.json (Action schema)",
+      "notes": "The dictionary rejects ACTION as general vocabulary and sends the writer to step, procedure or task. None of those names this object. The dictionary also lists it under category 21, Law and regulations, which is a different sense."
+    },
+    {
+      "term": "alias",
+      "definition": "The stable placeholder that redaction writes in place of a value.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Sharing the report outside the organisation)"
+    },
+    {
+      "term": "appliance",
+      "definition": "The virtual appliance that hosts the platform.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Useful flags)"
+    },
+    {
+      "term": "approval level",
+      "definition": "One stage of an approval policy, with its own approvers.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Policies, approvals and governance)"
+    },
+    {
+      "term": "approval policy",
+      "definition": "A Service Broker policy that holds a request behind one or more approval levels.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Policies, approvals and governance)"
+    },
+    {
+      "term": "approval request",
+      "definition": "The work item raised when an approval policy gates a request, held until an approver decides it.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/approvals.json (Approval Request tag)",
+      "notes": "APPROVAL is approved as a core noun, but REQUEST is not approved as a noun or a verb. Use this two-word technical name for the work item. Do not write the request on its own."
+    },
+    {
+      "term": "approver",
+      "definition": "The user or group an approval level asks.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Policies, approvals and governance)"
+    },
+    {
+      "term": "blueprint",
+      "definition": "The YAML template that declares the resources and the constraints of a deployment. The product user interface calls it a cloud template.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/blueprint.json (Blueprint schema)",
+      "notes": "The API calls the object a blueprint and the user interface calls it a cloud template. Use blueprint in prose that follows the API and keep cloud template for text that follows the user interface."
+    },
+    {
+      "term": "capability map",
+      "definition": "The Replatforming Readiness Report's table of each capability in use and its recommended replacement.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Replatforming readiness report)",
+      "notes": "capability tag map is already approved and names a different table."
+    },
+    {
+      "term": "capability tag",
+      "definition": "A tag key and optional value set on a placement object to declare a capability that a placement constraint can match.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (CloudAccount.tags description)",
+      "notes": "CAPABILITY on its own is not approved as a noun and sends the writer to function or can. The two-word form is the platform's own name for the object, so it stands as a technical name and is not rewritten."
+    },
+    {
+      "term": "capability tag map",
+      "definition": "The derived structure that maps each capability tag to the places that hold it.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: data.derived[\"capability_tags\"]"
+    },
+    {
+      "term": "catalog access map",
+      "definition": "The report's table of which projects can request which catalog items.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Catalog)",
+      "notes": "The README also calls it 'project access map'. One name is the decision."
+    },
+    {
+      "term": "catalog item",
+      "definition": "An item published to the catalog that a consumer can request.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json (CatalogItem schema)"
+    },
+    {
+      "term": "catalog source",
+      "definition": "A source of content that supplies catalog items to the catalog.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json (CatalogSource schema)"
+    },
+    {
+      "term": "cloud account",
+      "definition": "A configured connection to a cloud provider endpoint, identifying the account type and the regions whose resources it makes available.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (CloudAccount schema)"
+    },
+    {
+      "term": "cloud template",
+      "definition": "The user interface name for the object that the API calls a blueprint.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Product user interface; docs/vcf_automation_oas_specs/8.x/blueprint.json names it Blueprint",
+      "notes": "The same object as the approved noun blueprint. Use blueprint for text that follows the API, and cloud template for text that follows the user interface."
+    },
+    {
+      "term": "cloud zone",
+      "definition": "A subset of the compute resources in a region in which machines can be placed.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Zone schema)"
+    },
+    {
+      "term": "code-quality signal",
+      "definition": "A defect or hygiene pattern the static analysis reports on an action's source.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Findings reference - Extensibility)"
+    },
+    {
+      "term": "collector",
+      "definition": "A module that reads one area of the platform over its API.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/collectors/"
+    },
+    {
+      "term": "constraint tag",
+      "definition": "The tag expression that a placement constraint holds, and that a capability tag must agree with.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md and specs/001-placement-resolution/spec.md; the API names the object PlacementConstraint",
+      "notes": "The tag a placement constraint holds, as distinct from the placement constraint itself and from the capability tag that must agree with it."
+    },
+    {
+      "term": "content sharing policy",
+      "definition": "A Service Broker policy that shares catalog sources or items with a project.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Policies, approvals and governance)"
+    },
+    {
+      "term": "content source",
+      "definition": "The content repository or project that a catalog source imports its items from.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json and blueprint.json (content source paths)"
+    },
+    {
+      "term": "count",
+      "definition": "A number of objects.",
+      "category": "Rule 1.5 category 7 - Mathematical, scientific, engineering terms, and formulas",
+      "source": "Project usage: zone_compute_counts and the report tables"
+    },
+    {
+      "term": "criteria",
+      "definition": "The condition expression on a subscription that decides which events it reacts to.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Subscriptions)",
+      "notes": "The product uses the plural form for one expression. Approve in that form or decide on 'criterion'."
+    },
+    {
+      "term": "custom resource",
+      "definition": "A resource type defined by the operator rather than by the platform, with its own lifecycle operations.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/custom_forms.json (custom resource paths)"
+    },
+    {
+      "term": "day-2 action",
+      "definition": "An operation run against an existing deployment or one of its resources, such as power off or resize.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Cloud templates and design content)",
+      "notes": "Hyphenated and lower-case in prose; the report's section label 'Day 2 Change' is an exact label."
+    },
+    {
+      "term": "deployment",
+      "definition": "A group of resources provisioned together from one request to deliver one workable application.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/deployment.json (Deployment schema)",
+      "notes": "The dictionary lists DEPLOYMENT under Rule 1.5 category 20, Civil and military operations. That is a different sense. This project approves the information technology sense in category 19: a group of provisioned resources."
+    },
+    {
+      "term": "diagram",
+      "definition": "A drawn figure in the report that shows a relation between objects.",
+      "category": "Rule 1.5 category 15 - Official documents, parts of documentation, standards, and guidelines",
+      "source": "Project usage: src/vcf_automation_assessment_tool/report/diagrams.py"
+    },
+    {
+      "term": "document",
+      "definition": "One object that a platform service returns, or one published specification.",
+      "category": "Rule 1.5 category 15 - Official documents, parts of documentation, standards, and guidelines",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (the IaaS document)"
+    },
+    {
+      "term": "documentation",
+      "definition": "The published description of a platform service, as distinct from what a build answers.",
+      "category": "Rule 1.5 category 15 - Official documents, parts of documentation, standards, and guidelines",
+      "source": "docs/vcf_automation_oas_specs/ service specifications"
+    },
+    {
+      "term": "dump",
+      "definition": "The JSON file of collected data that the tool writes with --json.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/cli.py --json"
+    },
+    {
+      "term": "dynamic constraint",
+      "definition": "A constraint tag whose value is decided at request time.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Capability tags)",
+      "notes": "Names the same concept as the approved term request-time constraint; the README writes 'request-time (dynamic) constraint'. Approved by the user 2026-09-22 with the rest of the queue."
+    },
+    {
+      "term": "endpoint",
+      "definition": "One addressable path of a service API.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/client.py"
+    },
+    {
+      "term": "entitlement",
+      "definition": "The legacy record that shares one catalog source or one catalog item with one project.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json (Entitlement schema)"
+    },
+    {
+      "term": "estate",
+      "definition": "One installation of the platform, with all the objects it holds.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md and the assessment reports"
+    },
+    {
+      "term": "event topic",
+      "definition": "A named point in a lifecycle at which the platform publishes an event that subscriptions react to.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/flows.py TOPIC_ORDER",
+      "notes": "Sourced to project usage, not to an API contract. No event broker specification is in docs/vcf_automation_oas_specs/. Confirm against the build's own api-docs when convenient."
+    },
+    {
+      "term": "expression",
+      "definition": "The text of a constraint or a criteria clause, which the tool reads but does not operate.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: Project.constraints[].expression"
+    },
+    {
+      "term": "extensibility",
+      "definition": "The platform mechanism that runs an ABX action or an Orchestrator workflow in response to an event.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Product user interface section name; src/vcf_automation_assessment_tool/collectors/extensibility.py"
+    },
+    {
+      "term": "fabric compute",
+      "definition": "A compute entity on the provider side in which resources can be provisioned, such as a cluster, a host or a resource pool.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (FabricCompute schema)",
+      "notes": "COMPUTE alone cannot be classified as a noun and the dictionary offers calculate for the verb. The two-word form is the platform's own object name."
+    },
+    {
+      "term": "fabric network",
+      "definition": "A network on the provider side that a network profile can make available for placement.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (FabricNetwork schema)"
+    },
+    {
+      "term": "failure",
+      "definition": "An operation that does not complete.",
+      "category": "Rule 1.5 category 7 - Mathematical, scientific, engineering terms, and formulas",
+      "source": "Project usage: the report's failed deployment and failed request counts"
+    },
+    {
+      "term": "fault",
+      "definition": "A defect in the estate that a result identifies.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: the report's findings"
+    },
+    {
+      "term": "field",
+      "definition": "One named member of a document or a form.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: the collected API documents"
+    },
+    {
+      "term": "finding",
+      "definition": "One result that a check reports, with an identifier such as TAG-001 and a severity.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Product report section: Findings",
+      "notes": "The dictionary sends the writer to result. The report gives findings identifiers and severities, so it is a named artefact rather than any result."
+    },
+    {
+      "term": "flag",
+      "definition": "A field that holds one of two states, such as hard or soft.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/projects.json (Project.constraints[].mandatory)"
+    },
+    {
+      "term": "flavor mapping",
+      "definition": "A mapping between a global fabric flavor key and the fabric flavor in one region.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (FlavorMapping schema)"
+    },
+    {
+      "term": "flavor profile",
+      "definition": "The set of flavor mappings held for one region.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (FlavorProfile schema)",
+      "notes": "PROFILE on its own is not approved as a noun and sends the writer to contour. The two-word form is the platform's own object name."
+    },
+    {
+      "term": "flow diagram",
+      "definition": "A mermaid diagram of what runs alongside a deployment: item, source, blueprint, event topics, subscriptions and runnable.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Catalog flow diagrams)",
+      "notes": "placement diagram is already approved on the same pattern."
+    },
+    {
+      "term": "form",
+      "definition": "The request form that a consumer completes when they request a catalog item.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/custom_forms.json (form service)",
+      "notes": "The dictionary sends the writer to shape or be. Neither names the request form."
+    },
+    {
+      "term": "gate chain",
+      "definition": "The ordered approval levels a request passes through under an approval policy.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Policies, approvals and governance)"
+    },
+    {
+      "term": "hard constraint",
+      "definition": "A constraint tag a placement must satisfy.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Placement diagrams)"
+    },
+    {
+      "term": "health status",
+      "definition": "The state an endpoint reports: OK, unhealthy or in maintenance.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Infrastructure and projects)"
+    },
+    {
+      "term": "identity source",
+      "definition": "The directory the platform authenticates users against.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Useful flags)"
+    },
+    {
+      "term": "image mapping",
+      "definition": "A mapping between an image key and the fabric image in one region.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (ImageMapping schema)"
+    },
+    {
+      "term": "image profile",
+      "definition": "The set of image mappings held for one region.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (ImageProfile schema)",
+      "notes": "PROFILE on its own is not approved as a noun and sends the writer to contour. The two-word form is the platform's own object name."
+    },
+    {
+      "term": "infrastructure",
+      "definition": "The cloud accounts, cloud zones, profiles and fabric computes that the platform provisions on.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Product report section: Infrastructure"
+    },
+    {
+      "term": "inputs schema",
+      "definition": "The resolved declaration of a blueprint's inputs that the blueprint service returns, holding the values each input can take.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/blueprint.json (GET /blueprint/api/blueprints/{blueprintId}/inputs-schema)"
+    },
+    {
+      "term": "integration",
+      "definition": "An endpoint registered with the platform that is not a cloud account, such as an Orchestrator instance.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Infrastructure and projects)"
+    },
+    {
+      "term": "join",
+      "definition": "The relation that resolves a catalog item to the blueprint it was made from.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/flows.py",
+      "notes": "The dictionary offers bond, attach and connect, which are physical operations."
+    },
+    {
+      "term": "lease",
+      "definition": "The period after which a deployment expires and is destroyed unless the lease is extended.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/policies.json (lease policy type)"
+    },
+    {
+      "term": "library blueprint",
+      "definition": "A blueprint that is held in a project with no cloud zones, and that other projects request through its catalog items.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: TEMPLATES, TEMPLATE_DTQ and TEMPLATE_PPP on the live estate"
+    },
+    {
+      "term": "list",
+      "definition": "An ordered set of values in a document or a report table.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: the collected API documents",
+      "notes": "The dictionary offers record and show. Neither names an ordered set of values."
+    },
+    {
+      "term": "literal",
+      "definition": "A value written out in full in an expression, and not computed at request time.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/tagutil.py describe_dynamic_tag"
+    },
+    {
+      "term": "machine",
+      "definition": "A compute resource that the platform provisions in a cloud zone.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Machine schema)",
+      "notes": "The dictionary has no entry. This project approves the information technology sense: a compute resource the platform provisions."
+    },
+    {
+      "term": "map",
+      "definition": "A structure that gives one value for each key.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: data.derived and data.raw structures"
+    },
+    {
+      "term": "match",
+      "definition": "An agreement between a placement constraint and a capability tag.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Zone.tagsToMatch)",
+      "notes": "The dictionary offers align and agree. The platform's own field is tagsToMatch, so this project keeps the operation's name."
+    },
+    {
+      "term": "model",
+      "definition": "The set of rules and structures with which the tool represents part of the platform.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/models.py, placement.py"
+    },
+    {
+      "term": "negated constraint",
+      "definition": "A constraint tag that excludes the places carrying it.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Placement diagrams)"
+    },
+    {
+      "term": "network",
+      "definition": "The network part of the infrastructure, which network profiles and fabric networks supply.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Network schema)"
+    },
+    {
+      "term": "network profile",
+      "definition": "A named set of network settings, fabric networks and capability tags used when a network resource is placed.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (NetworkProfile schema)",
+      "notes": "PROFILE on its own is not approved as a noun and sends the writer to contour. The two-word form is the platform's own object name."
+    },
+    {
+      "term": "node",
+      "definition": "One drawn object in a diagram.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/report/diagrams.py"
+    },
+    {
+      "term": "note",
+      "definition": "A short statement in the report that qualifies or withholds a claim.",
+      "category": "Rule 1.5 category 15 - Official documents, parts of documentation, standards, and guidelines",
+      "source": "Project usage: src/vcf_automation_assessment_tool/report/renderer.py",
+      "notes": "NOTE also has the core alternative RECORD. This project approves the documentation sense, which is what the report renders."
+    },
+    {
+      "term": "Orchestrator action",
+      "definition": "A scripted action held by an Orchestrator: the leaf code that workflows call.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Orchestrator workflows and actions)",
+      "notes": "action alone is already approved; the compound distinguishes it from an ABX action."
+    },
+    {
+      "term": "Orchestrator workflow",
+      "definition": "A workflow held by the embedded or an external Orchestrator, run by a subscription or a catalog item.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Orchestrator workflows and actions)",
+      "notes": "workflow alone is already approved; this names the Orchestrator-held kind."
+    },
+    {
+      "term": "organization",
+      "definition": "The tenancy level above projects, and the scope of an org-scoped policy.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Policies, approvals and governance)",
+      "notes": "The README also writes 'org' and 'organisation' (British, in the redaction section). One spelling per sense is the decision here."
+    },
+    {
+      "term": "owner",
+      "definition": "The user a deployment records as its owner.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Deployments)"
+    },
+    {
+      "term": "place",
+      "definition": "The object that a resource is provisioned on: a cloud zone for a machine, or the profile itself for a network or a disk.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Zone description: 'where machines can be placed')",
+      "notes": "PLACE is not approved as a noun or a verb and the dictionary sends the writer to position, area or put. None of those names the platform's placement operation, which the API itself calls placement."
+    },
+    {
+      "term": "placement",
+      "definition": "The platform operation that decides which place a resource is provisioned on.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (PlacementConstraint schema; Zone description)"
+    },
+    {
+      "term": "placement constraint",
+      "definition": "A tag expression on a resource or a project that the placement engine matches against capability tags to decide where the resource can be built.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (PlacementConstraint schema)"
+    },
+    {
+      "term": "placement diagram",
+      "definition": "The diagram that shows where the platform can provision each resource of a blueprint.",
+      "category": "Rule 1.5 category 15 - Official documents, parts of documentation, standards, and guidelines",
+      "source": "Product report section: Placement Diagrams"
+    },
+    {
+      "term": "platform",
+      "definition": "The product that this tool reads: VCF Automation, historically Aria Automation 8.x.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md"
+    },
+    {
+      "term": "policy",
+      "definition": "A rule set applied at organization or project scope that governs approval, content sharing, day-2 actions, leases or limits.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/policies.json (Policy schema)"
+    },
+    {
+      "term": "power state",
+      "definition": "Whether a machine is on or off, as its document records.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Deployments)"
+    },
+    {
+      "term": "prefix",
+      "definition": "The text at the start of a value, such as the ! that negates a constraint expression.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: the ! prefix on a project constraint expression"
+    },
+    {
+      "term": "project",
+      "definition": "The object that links users and cloud zones, and so controls who can use which cloud resources.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Project schema)"
+    },
+    {
+      "term": "property group",
+      "definition": "A reusable named set of properties that a blueprint can include.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/blueprint.json (PropertyGroup schema)"
+    },
+    {
+      "term": "quota",
+      "definition": "A project's limit on instances, memory, CPU or storage in one cloud zone.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Infrastructure and projects)"
+    },
+    {
+      "term": "reader",
+      "definition": "A function that interprets one documented shape and returns nothing for a shape it does not know.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/tagutil.py"
+    },
+    {
+      "term": "redaction",
+      "definition": "Replacing identifying values in the report with stable aliases.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Sharing the report outside the organisation)"
+    },
+    {
+      "term": "region",
+      "definition": "A provider data center or account region made available through a cloud account.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Region schema)"
+    },
+    {
+      "term": "renderer",
+      "definition": "The module that builds the report from the collected and derived data.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/report/renderer.py"
+    },
+    {
+      "term": "request",
+      "definition": "The record raised when a consumer orders a catalog item or a resource action, which the platform then fulfils and which carries the outcome.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/deployment.json (Request schema: 'Represents deployment requests')",
+      "notes": "This entry overrides the core dictionary on purpose. REQUEST is not approved as a noun or a verb and the dictionary sends the writer to tell and write. Neither names this object. The verb sense is NOT approved here: write put or order, never request as an action."
+    },
+    {
+      "term": "request history",
+      "definition": "The record of deployment requests the platform retains, read with --request-history.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Deployments)"
+    },
+    {
+      "term": "request-time constraint",
+      "definition": "A placement constraint whose tag is decided when the request is made, from an input or an expression.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/tagutil.py describe_dynamic_tag"
+    },
+    {
+      "term": "requirement",
+      "definition": "A condition that a project or a policy adds, which a request must meet.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/projects.json (Project.constraints)"
+    },
+    {
+      "term": "resource",
+      "definition": "One object in a deployment, such as a machine, a network or a disk.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/deployment.json (Resource schema)"
+    },
+    {
+      "term": "resource action",
+      "definition": "An operation offered against a provisioned resource after it is built.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json and policies.json (Resource Actions tag)",
+      "notes": "ACTION alone is not approved as a noun and sends the writer to step, procedure or task. The two-word form is the platform's own object name."
+    },
+    {
+      "term": "resource type",
+      "definition": "The classification of a resource in a blueprint, which decides the place types that can serve it.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/blueprint.json (Resource Types tag)"
+    },
+    {
+      "term": "review list",
+      "definition": "An INFO finding that lists objects for a person to look at rather than a defect.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Capability tags)"
+    },
+    {
+      "term": "role",
+      "definition": "A project role: administrator, member, viewer or supervisor.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Deployments)"
+    },
+    {
+      "term": "rule",
+      "definition": "One statement in a specification that the tool must obey.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: specs/001-placement-resolution/spec.md"
+    },
+    {
+      "term": "run",
+      "definition": "One complete operation of the assessment tool.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/cli.py",
+      "notes": "The dictionary offers operate, which is the verb. The noun names one execution."
+    },
+    {
+      "term": "runnable",
+      "definition": "The ABX action or Orchestrator workflow that a subscription runs.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Subscriptions)",
+      "notes": "The product's own name for the target of a subscription."
+    },
+    {
+      "term": "runner",
+      "definition": "The component that runs an extensibility action for a project.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: the extensibility constraint selects a runner"
+    },
+    {
+      "term": "schema",
+      "definition": "A declaration of the shape of a document that a service returns.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/ (OpenAPI components.schemas)"
+    },
+    {
+      "term": "scope",
+      "definition": "The set of projects or objects that a policy, a share or a resolution applies to.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/policies.json (Policy.scopeCriteria)",
+      "notes": "The dictionary lists SCOPE under Rule 1.5 category 21, Law and regulations. That is a different sense. This project approves the information technology sense in category 19."
+    },
+    {
+      "term": "scope criteria",
+      "definition": "The conditions on an org-scoped policy that select which projects it covers.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Findings reference - Policies and Governance)"
+    },
+    {
+      "term": "service",
+      "definition": "One API service of the platform, such as the blueprint service or the form service.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/ (one specification per service)",
+      "notes": "The dictionary offers servicing, which is maintenance work and a different concept."
+    },
+    {
+      "term": "severity",
+      "definition": "The CRITICAL, WARNING or INFO level carried by a finding.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Severities and exit codes)"
+    },
+    {
+      "term": "sharing pattern",
+      "definition": "A set of catalog items shared with the same projects, grouped as one row of the catalog access map.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Catalog)"
+    },
+    {
+      "term": "soft constraint",
+      "definition": "A constraint tag a placement prefers and can drop.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Findings reference - Infrastructure)"
+    },
+    {
+      "term": "soft-delete window",
+      "definition": "The period a deleted deployment stays readable before the platform purges it.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Deployments)"
+    },
+    {
+      "term": "specification",
+      "definition": "The document that states what a change must do, before the work starts.",
+      "category": "Rule 1.5 category 15 - Official documents, parts of documentation, standards, and guidelines",
+      "source": "Project usage: the sdd-workflow specs/<NNN>-<slug>/spec.md"
+    },
+    {
+      "term": "statement",
+      "definition": "One claim that the report makes about the estate.",
+      "category": "Rule 1.5 category 15 - Official documents, parts of documentation, standards, and guidelines",
+      "source": "Project usage: the report's findings and notes"
+    },
+    {
+      "term": "storage",
+      "definition": "The storage part of the infrastructure, which storage profiles supply.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (StorageProfile schema)"
+    },
+    {
+      "term": "storage profile",
+      "definition": "A named set of storage settings and capability tags linked to a cloud zone or a region.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (StorageProfile schema)",
+      "notes": "PROFILE on its own is not approved as a noun and sends the writer to contour. The two-word form is the platform's own object name."
+    },
+    {
+      "term": "subscription",
+      "definition": "The extensibility record that binds an event topic to a runnable.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: src/vcf_automation_assessment_tool/collectors/extensibility.py",
+      "notes": "Sourced to project usage, not to an API contract. The matches for subscription in docs/vcf_automation_oas_specs/8.x/iaas.json are Azure subscription identifiers, not event broker subscriptions."
+    },
+    {
+      "term": "suffix",
+      "definition": "The text at the end of a value, such as the :soft that makes a constraint soft.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Product user interface: the key:value:soft form"
+    },
+    {
+      "term": "template",
+      "definition": "Short form of cloud template.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Project usage: README.md (Cloud templates and design content)",
+      "notes": "cloud template is already approved. The README uses the short form far more often; approve it as a form, or reject and write the full term."
+    },
+    {
+      "term": "user interface",
+      "definition": "The web interface of the platform, as distinct from its API.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "Product user interface"
+    },
+    {
+      "term": "workflow",
+      "definition": "An Automation Orchestrator workflow, run as a catalog item or from a subscription.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "src/vcf_automation_assessment_tool/models.py ITEM_TYPE_LABELS product label 'Automation Orchestrator workflow'"
+    },
+    {
+      "term": "zone assignment",
+      "definition": "The record that gives one project the use of one cloud zone, with the priority and the resource limits that apply there.",
+      "category": "Rule 1.5 category 19 - Computer science, information and communication technology",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (ZoneAssignment schema)"
+    }
+  ],
+  "technical_verbs": [
+    {
+      "term": "assign",
+      "definition": "To give a project the use of a cloud zone.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (ZoneAssignment schema)",
+      "notes": "The dictionary sends the writer to give. The project already approves the noun zone assignment, so the verb follows it."
+    },
+    {
+      "term": "consume",
+      "definition": "To reference a capability tag from a constraint, said of a blueprint.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: README.md (Capability tags)"
+    },
+    {
+      "term": "enumerate",
+      "definition": "To list every value that an input can take.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: src/vcf_automation_assessment_tool/tagutil.py read_input_schema"
+    },
+    {
+      "term": "fail",
+      "definition": "To stop before completion.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: the report's failed deployment and failed request counts",
+      "notes": "The resolver cannot classify this use. This project approves the information technology sense."
+    },
+    {
+      "term": "flag",
+      "definition": "To report an object in a finding.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: README.md (Infrastructure and projects)",
+      "notes": "flag is already approved as a noun; this is the verb sense the README uses throughout."
+    },
+    {
+      "term": "import",
+      "definition": "To bring content into the catalog from a content source, or into another tenant.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: README.md (Catalog)"
+    },
+    {
+      "term": "inherit",
+      "definition": "To carry a capability tag assigned on a parent object, as an account's computes carry the account's tags.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: README.md (Capability tags)"
+    },
+    {
+      "term": "intersect",
+      "definition": "To take only the places that satisfy every hard placement constraint on one resource.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: src/vcf_automation_assessment_tool/placement.py",
+      "notes": "The resolver cannot classify this use. It names the set operation the platform performs."
+    },
+    {
+      "term": "match",
+      "definition": "To compare a placement constraint against a capability tag and decide whether it is satisfied.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Zone.tagsToMatch)",
+      "notes": "Overrides the core alternatives align and agree, which name a weaker relation than the platform's tag matching."
+    },
+    {
+      "term": "onboard",
+      "definition": "To bring resources that already exist on a provider endpoint under management as a deployment.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json, deployment.json and policies.json (onboarding paths)"
+    },
+    {
+      "term": "parse",
+      "definition": "To read structured text and build the objects it declares.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: src/vcf_automation_assessment_tool/codequality.py"
+    },
+    {
+      "term": "pin",
+      "definition": "To fix a subscription criterion to one object's id.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: README.md (Subscriptions)"
+    },
+    {
+      "term": "place",
+      "definition": "To decide which cloud zone, profile or fabric compute a resource is provisioned on.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (Zone description: 'where machines can be placed')",
+      "notes": "Overrides the same core rejection as the noun. Placement is a named platform operation, so put would name a different concept."
+    },
+    {
+      "term": "provision",
+      "definition": "To create the resources of a deployment on a provider endpoint.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (FabricCompute description: 'used to provision resources in')"
+    },
+    {
+      "term": "redact",
+      "definition": "To replace an identifying value with an alias.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: README.md (Sharing the report outside the organisation)"
+    },
+    {
+      "term": "report",
+      "definition": "To state a fault in the report as a finding.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Product report section: Findings",
+      "notes": "The resolver cannot classify this use. This project approves the reporting sense."
+    },
+    {
+      "term": "request",
+      "definition": "To order a catalog item, which raises a request that the platform then fulfils.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/catalog.json (CatalogItem: 'requested by a consumer')",
+      "notes": "Overrides the core rejection. The dictionary sends the writer to tell or write, and neither names this operation. The noun 'request' is approved on the same basis."
+    },
+    {
+      "term": "resolve",
+      "definition": "To read a reference or an expression and return the values it stands for.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: src/vcf_automation_assessment_tool/placement.py"
+    },
+    {
+      "term": "satisfy",
+      "definition": "To meet the condition that a placement constraint states.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/iaas.json (PlacementConstraint); project usage in the TAG checks"
+    },
+    {
+      "term": "scope",
+      "definition": "To limit a policy to a project or to the organization.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "Project usage: README.md (Policies, approvals and governance)",
+      "notes": "scope is already approved as a noun; this is the verb."
+    },
+    {
+      "term": "share",
+      "definition": "To make a catalog item requestable from a project.",
+      "category": "Rule 1.12 category 2 - Computer processes and applications",
+      "source": "docs/vcf_automation_oas_specs/8.x/policies.json (content sharing policy); docs/vcf_automation_oas_specs/8.x/catalog.json (Entitlement)"
+    }
+  ]
+}

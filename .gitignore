@@ -1,0 +1,25 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+/reports/*
+!/reports/.keep
+config.yaml
+*.json.bak
+
+# Local development instructions and captured API reference documents.
+/.claude/
+/docs/vcf_automation_oas_specs/
+
+# Assessment output. A default run writes under reports/, but an explicit
+# --output or --json path lands wherever it was pointed, and every one of these
+# files holds live estate data: host names, principals, addresses. The sample
+# report is committed on purpose and is the only generated file that is.
+/*.json
+/vcf-automation-assessment-report-*.html
+!/vcf-automation-assessment-report-sample.html
+/redaction-key.csv
