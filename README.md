@@ -1,5 +1,8 @@
 # vcf-automation-assessment-tool
 
+Version **1.0.0** is the first stable release. See the
+[changelog](CHANGELOG.md) for release details.
+
 VCF Automation Assessment Tool for VMware VCF Automation 8.x. It interrogates
 the platform read-only over its REST APIs and produces one self-contained HTML
 report of estate health, hygiene, usage and complexity. The report covers broken
@@ -10,6 +13,240 @@ The assessment naturally supports upgrade or migration planning. A Replatforming
 Readiness Report, hidden by default, scopes what replacing VCF Automation would
 take. The target stack is OpenShift, GitLab CI/CD, Ansible Automation Platform
 and Terraform.
+
+<!-- ste:procedural -->
+
+## Install
+
+Python 3.11 or later is required. The commands below also require Git.
+
+Clone the repository, enter its directory, and install the tool in a virtual
+environment:
+
+```powershell
+git clone https://github.com/simplygeekuk/vmware-vcf-automation-assessment-tool.git
+cd vmware-vcf-automation-assessment-tool
+python -m venv .venv
+.venv\Scripts\pip install -e .
+```
+
+Installing the tool also installs `pyflakes` and `esprima`, which is everything
+needed to analyse Python and JavaScript action source. PowerShell is the one
+exception. Real parsing uses PowerShell's own engine, so `pwsh` or `powershell`
+has to be on the assessment host's PATH. Without it, PowerShell actions fall
+back to regex heuristics. The report says which of the three parsers actually
+ran.
+
+<!-- ste:descriptive -->
+
+## Authentication
+
+Two flows, both ending in the IaaS bearer token used for every service:
+
+1. `POST /csp/gateway/am/api/login?access_token` takes a username and password,
+   with an optional domain, and returns a refresh token.
+2. `POST /iaas/api/login` exchanges that refresh token for the bearer token.
+
+With `--refresh-token` or `VCF_REFRESH_TOKEN`, step 1 is skipped. The password
+is never a CLI flag and is never read from the config file. It is prompted for,
+hidden, or taken from `VCF_PASSWORD`.
+
+Full org-wide coverage needs Organization Owner plus the Assembler and Service
+Broker admin roles. With less, the tool degrades per area, and the report states
+exactly what could not be collected (SYS-001). Without catalog admin, for
+example, it falls back to the entitlement-scoped item list and says so.
+
+<!-- ste:procedural -->
+
+## Run
+
+```powershell
+# username/password - password is prompted, never echoed
+.venv\Scripts\vcf-automation-assessment-tool --url https://vra.example.com --username admin --insecure -v
+
+# or with a pre-obtained refresh token
+$env:VCF_REFRESH_TOKEN = "..."
+.venv\Scripts\vcf-automation-assessment-tool --url https://vra.example.com --insecure
+
+# or seed everything from a config file (see config.example.yaml)
+Copy-Item config.example.yaml config.yaml   # then edit
+.venv\Scripts\vcf-automation-assessment-tool -v
+```
+
+While the tool runs, one progress line per phase goes to stderr: authentication,
+each collection area numbered, analysis, and rendering. `-v` switches to
+detailed logging instead.
+
+### Useful flags
+
+| Flag | Effect |
+|---|---|
+| `--output PATH` | Where to write the report. The default is `reports/vcf-automation-assessment-report-<host>-<timestamp>.html`, and the folder is created as needed. |
+| `--json PATH` | Also write the full raw dump. |
+| `--compare PATH` | An earlier run's `--json` dump. The report then opens with what changed since it. See below. |
+| `--project NAME` | Limit the report to this project. Repeatable. |
+| `--domain corp.local` | The identity source domain, for LDAP and AD users. |
+| `--ca-bundle PATH` | A CA bundle for TLS verification, instead of `--insecure`. |
+| `--include-system-subscriptions` | Show the platform's built-in subscriptions, which are hidden from the report by default: Quota enforcement, Approval workflow, Migration Assessment and `ABX-CGS-*`. |
+| `--ignore-section NAME` | Leave a report section out. Repeatable. See below. |
+| `--ignore-finding ID` | Leave a finding out of the report. Repeatable. See below. |
+| `--pedantic` | Add hygiene-level code-quality signals to the defect-level ones reported by default. |
+| `--request-history` | Read every deployment's request history. One API call per deployment. |
+| `--request-history-limit N` | Trial the request history over part of the estate first. |
+| `--no-group-membership` | Skip expanding the groups projects grant to. |
+| `--timeout N` | The per-request timeout, for a busy appliance. |
+| `--retries N` | How many times to repeat a call that times out or drops. |
+| `--max-rows-per-finding N` | Change the 500-row cap on each finding's affected-objects table. `max_rows_per_finding` does the same in the config file. |
+| `--redact` | Write a shareable redacted copy alongside the report. See below. |
+
+A call that times out or drops is repeated 3 times by default. The waits are 1,
+2 and 4 seconds. After that the run gives up on the call and records the gap.
+
+Every flag here has a config-file equivalent under the same name, with dashes as
+underscores. See `config.example.yaml`.
+
+<!-- ste:descriptive -->
+
+### Leaving sections and findings out
+
+The report is filtered, never the collection. Every area is collected on every
+run, so the checks always see the whole estate and the `--json` dump is always
+complete. What you choose not to read is a rendering decision.
+
+`ignore_sections` lists the report sections to leave out, by anchor id. The ids
+are `summary`, `infrastructure`, `consumption`, `design`, `extensibility`,
+`governance`, `replatforming` and `system`. `--ignore-section NAME` is
+repeatable and does the same for one run.
+
+```yaml
+ignore_sections:
+  - replatforming
+```
+
+Hiding a section takes its findings with it wherever they render. Hiding
+`replatforming` also removes REP-002 from Design and Templates, which is where
+that one is displayed. The nav pill goes too, and the header names what was
+hidden.
+
+This is how the Replatforming Readiness Report is turned on and off, and
+`config.example.yaml` ships with it hidden, so the base report is a pure estate
+assessment. Delete the line to include the capability replacement map, the
+per-item difficulty ratings and the Orchestrator dependency surface.
+
+`ignore_findings` in the config file lists check ids the HTML report omits.
+`--ignore-finding ID` is repeatable, does the same for one run, and overrides
+the file.
+
+```yaml
+ignore_findings:
+  - DEP-002
+```
+
+Ignored findings still run, and they still appear in the `--json` dump. Only the
+HTML leaves them out, and its header names what it suppressed, so a reader is
+never silently short of a finding. Ids are matched case-insensitively. An id
+that matched nothing is reported at the end of the run, because that is almost
+always a typo keeping a finding you meant to drop.
+
+`config.example.yaml` ships with one finding ignored: DEP-002, which needs two
+carve-outs to be usable. Remove the id to see that finding again.
+
+### Sharing the report outside the organisation
+
+`redact: true`, or `--redact`, writes a second report beside the normal one with
+identifying values replaced by stable aliases. Both files come from one
+collection pass, so an external copy costs no extra API calls:
+
+```
+reports/vcf-automation-assessment-report-vra01.corp.local-20260821-1530.html
+reports/vcf-automation-assessment-report-redacted-20260821-1530.html
+```
+
+The redacted file is named from the timestamp alone, because a host name in a
+filename undoes the work done on the contents. The report says on its own front
+page that it is redacted, and what was replaced.
+
+An alias is stable within a report. `person04` is the same person in the
+ownership table and in the finding that names them, so the findings can still be
+discussed with an outside party. The assessment underneath is untouched.
+Redaction runs after the checks, so findings, counts, severities and dates are
+exactly those of the unredacted report.
+
+`redact_classes` chooses what is replaced. The default is `identity`, `hosts`
+and `tags`:
+
+| Class | Replaces | Alias |
+|---|---|---|
+| `identity` | user and group names, in every shape (UPN, `DOMAIN\user`, the project service's doubled form) | `person04@domain01.invalid` |
+| `hosts` | host names, URLs, UNC paths and IP addresses; credentials embedded in a URL are dropped, never aliased | `host02.domain01.invalid`, `192.0.2.7` |
+| `tags` | capability tag keys and values, and the composite | `tag06`, `tag06:tag07` |
+| `names` | every object name: projects, templates, catalog items, deployments, subscriptions, actions, policies | `Project 04` |
+| `ids` | internal identifiers | `id12` |
+
+Add `names` where object names carry business unit, environment or site. Most
+estates name things that way, and it is the one class whose cost is paid in
+readability. `redact_extra` takes literal strings, replaced wherever they occur
+and including inside longer identifiers. Use it for a company or site name the
+classes cannot recognise on their own.
+
+Nothing can prove a document carries no identifying value, so the tool checks
+its own work. The rendered page is searched for the values the run learned. If
+any survives, the redacted file is **not written**, and the run fails naming
+what leaked.
+
+Three limits are worth stating plainly:
+
+- A value the tool never learned is neither replaced nor reported. A host name
+  inside a free-text description, or an identifier in a catalog item's
+  description, are both of that kind. The redacted report therefore still
+  deserves the read-before-you-send that any document leaving the organisation
+  gets.
+- Values too short or too ordinary to tell from prose are replaced only where
+  they stand alone. A tag spelled `no`, or one spelled `high`, are of that kind.
+  For the same reason they are outside the scan, because searching for them
+  would report the report itself. So are the words the report writes on its own
+  account. An assessment account called `administrator` is replaced in the cell
+  that names it, while the project role labels the report works out for itself
+  are left as they are.
+- Redaction is only as good as its classes. With `names` off, an object called
+  `payments-prod-dr` says what it says.
+
+`redact_key: PATH` writes the alias-to-real-value mapping as CSV, so a finding
+can be traced back in-house. That file is as sensitive as the estate itself.
+Keep it, and never send it with the report.
+
+The `--json` dump is never redacted. It is the internal record of what was
+collected, and a partially-redacted data dump would be a trap.
+
+### Comparing with an earlier run
+
+Every run is a snapshot. Keep the `--json` dump of each assessment and pass
+the previous one as `--compare`, or as `compare` in the config file. The
+Executive Summary then opens with what moved. It lists findings that appeared,
+findings that were resolved, and findings whose object list grew or shrank,
+with the estate's counts side by side. Objects are matched by the platform's id where it gave
+one, else by name. A dump that is not this tool's, or cannot be read, fails
+the run before it logs in. In a redacted copy the names of objects no longer
+flagged are not printed, because they belong to the earlier run and were never
+learned by this one.
+
+<!-- ste:descriptive -->
+
+## The report
+
+One HTML file, with no external requests, because mermaid.js is vendored and
+inlined. It can therefore be opened on an air-gapped jump host and attached to
+assessment docs.
+
+The Executive Summary sits up top, with severity tiles and the findings table.
+Per-area inventory tables follow, in the order listed under
+[What it reports](#what-it-reports). Affected-object
+lists are collapsed and capped at 500 rows per finding, and the `--json` dump
+has everything.
+
+For a sample built from synthetic test data, run
+`.venv\Scripts\python -m pytest tests/test_report.py`, or see
+`vcf-automation-assessment-report-sample.html` if it is present.
 
 ## What it reports
 
@@ -125,9 +362,13 @@ flagged row names the item it came from.
 
 An ownership rollup is headlined by its concentration: owners, the share held by
 the largest owner and by the top three, and deployments with no recorded owner.
-It lists each owner's last activity and the strongest project role they still
-hold. That role is withheld where project roles are granted only to groups,
-which the API does not expand.
+It lists each owner's last activity and the strongest project role the collected
+data confirms, including roles granted through groups. By default, the tool reads
+membership for groups that projects grant roles to, where the API permits it.
+An unreadable group is recorded as a gap, not treated as an empty group.
+If an owner's access remains unresolved because of an unreadable group on their
+project, the report shows "not determined". Use `--no-group-membership` to skip
+collecting group membership.
 
 Machines by Project lists every machine the platform still holds, under the
 project that owns its deployment, with power state, sync status, owner,
@@ -402,228 +643,6 @@ which section each check appears under.
 
 <!-- ste:procedural -->
 
-## Install
-
-Python 3.11 or later is required.
-
-```powershell
-python -m venv .venv
-.venv\Scripts\pip install -e .
-```
-
-Installing the tool also installs `pyflakes` and `esprima`, which is everything
-needed to analyse Python and JavaScript action source. PowerShell is the one
-exception. Real parsing uses PowerShell's own engine, so `pwsh` or `powershell`
-has to be on the assessment host's PATH. Without it, PowerShell actions fall
-back to regex heuristics. The report says which of the three parsers actually
-ran.
-
-## Run
-
-```powershell
-# username/password - password is prompted, never echoed
-.venv\Scripts\vcf-automation-assessment-tool --url https://vra.example.com --username admin --insecure -v
-
-# or with a pre-obtained refresh token
-$env:VCF_REFRESH_TOKEN = "..."
-.venv\Scripts\vcf-automation-assessment-tool --url https://vra.example.com --insecure
-
-# or seed everything from a config file (see config.example.yaml)
-Copy-Item config.example.yaml config.yaml   # then edit
-.venv\Scripts\vcf-automation-assessment-tool -v
-```
-
-While the tool runs, one progress line per phase goes to stderr: authentication,
-each collection area numbered, analysis, and rendering. `-v` switches to
-detailed logging instead.
-
-### Useful flags
-
-| Flag | Effect |
-|---|---|
-| `--output PATH` | Where to write the report. The default is `reports/vcf-automation-assessment-report-<host>-<timestamp>.html`, and the folder is created as needed. |
-| `--json PATH` | Also write the full raw dump. |
-| `--compare PATH` | An earlier run's `--json` dump. The report then opens with what changed since it. See below. |
-| `--project NAME` | Limit the report to this project. Repeatable. |
-| `--domain corp.local` | The identity source domain, for LDAP and AD users. |
-| `--ca-bundle PATH` | A CA bundle for TLS verification, instead of `--insecure`. |
-| `--include-system-subscriptions` | Show the platform's built-in subscriptions, which are hidden from the report by default: Quota enforcement, Approval workflow, Migration Assessment and `ABX-CGS-*`. |
-| `--ignore-section NAME` | Leave a report section out. Repeatable. See below. |
-| `--ignore-finding ID` | Leave a finding out of the report. Repeatable. See below. |
-| `--pedantic` | Add hygiene-level code-quality signals to the defect-level ones reported by default. |
-| `--request-history` | Read every deployment's request history. One API call per deployment. |
-| `--request-history-limit N` | Trial the request history over part of the estate first. |
-| `--no-group-membership` | Skip expanding the groups projects grant to. |
-| `--timeout N` | The per-request timeout, for a busy appliance. |
-| `--retries N` | How many times to repeat a call that times out or drops. |
-| `--max-rows-per-finding N` | Change the 500-row cap on each finding's affected-objects table. `max_rows_per_finding` does the same in the config file. |
-| `--redact` | Write a shareable redacted copy alongside the report. See below. |
-
-A call that times out or drops is repeated 3 times by default. The waits are 1,
-2 and 4 seconds. After that the run gives up on the call and records the gap.
-
-Every flag here has a config-file equivalent under the same name, with dashes as
-underscores. See `config.example.yaml`.
-
-<!-- ste:descriptive -->
-
-### Leaving sections and findings out
-
-The report is filtered, never the collection. Every area is collected on every
-run, so the checks always see the whole estate and the `--json` dump is always
-complete. What you choose not to read is a rendering decision.
-
-`ignore_sections` lists the report sections to leave out, by anchor id. The ids
-are `summary`, `infrastructure`, `consumption`, `design`, `extensibility`,
-`governance`, `replatforming` and `system`. `--ignore-section NAME` is
-repeatable and does the same for one run.
-
-```yaml
-ignore_sections:
-  - replatforming
-```
-
-Hiding a section takes its findings with it wherever they render. Hiding
-`replatforming` also removes REP-002 from Design and Templates, which is where
-that one is displayed. The nav pill goes too, and the header names what was
-hidden.
-
-This is how the Replatforming Readiness Report is turned on and off, and
-`config.example.yaml` ships with it hidden, so the base report is a pure estate
-assessment. Delete the line to include the capability replacement map, the
-per-item difficulty ratings and the Orchestrator dependency surface.
-
-`ignore_findings` in the config file lists check ids the HTML report omits.
-`--ignore-finding ID` is repeatable, does the same for one run, and overrides
-the file.
-
-```yaml
-ignore_findings:
-  - DEP-002
-```
-
-Ignored findings still run, and they still appear in the `--json` dump. Only the
-HTML leaves them out, and its header names what it suppressed, so a reader is
-never silently short of a finding. Ids are matched case-insensitively. An id
-that matched nothing is reported at the end of the run, because that is almost
-always a typo keeping a finding you meant to drop.
-
-`config.example.yaml` ships with one finding ignored: DEP-002, which needs two
-carve-outs to be usable. Remove the id to see that finding again.
-
-### Sharing the report outside the organisation
-
-`redact: true`, or `--redact`, writes a second report beside the normal one with
-identifying values replaced by stable aliases. Both files come from one
-collection pass, so an external copy costs no extra API calls:
-
-```
-reports/vcf-automation-assessment-report-vra01.corp.local-20260821-1530.html
-reports/vcf-automation-assessment-report-redacted-20260821-1530.html
-```
-
-The redacted file is named from the timestamp alone, because a host name in a
-filename undoes the work done on the contents. The report says on its own front
-page that it is redacted, and what was replaced.
-
-An alias is stable within a report. `person04` is the same person in the
-ownership table and in the finding that names them, so the findings can still be
-discussed with an outside party. The assessment underneath is untouched.
-Redaction runs after the checks, so findings, counts, severities and dates are
-exactly those of the unredacted report.
-
-`redact_classes` chooses what is replaced. The default is `identity`, `hosts`
-and `tags`:
-
-| Class | Replaces | Alias |
-|---|---|---|
-| `identity` | user and group names, in every shape (UPN, `DOMAIN\user`, the project service's doubled form) | `person04@domain01.invalid` |
-| `hosts` | host names, URLs, UNC paths and IP addresses; credentials embedded in a URL are dropped, never aliased | `host02.domain01.invalid`, `192.0.2.7` |
-| `tags` | capability tag keys and values, and the composite | `tag06`, `tag06:tag07` |
-| `names` | every object name: projects, templates, catalog items, deployments, subscriptions, actions, policies | `Project 04` |
-| `ids` | internal identifiers | `id12` |
-
-Add `names` where object names carry business unit, environment or site. Most
-estates name things that way, and it is the one class whose cost is paid in
-readability. `redact_extra` takes literal strings, replaced wherever they occur
-and including inside longer identifiers. Use it for a company or site name the
-classes cannot recognise on their own.
-
-Nothing can prove a document carries no identifying value, so the tool checks
-its own work. The rendered page is searched for the values the run learned. If
-any survives, the redacted file is **not written**, and the run fails naming
-what leaked.
-
-Three limits are worth stating plainly:
-
-- A value the tool never learned is neither replaced nor reported. A host name
-  inside a free-text description, or an identifier in a catalog item's
-  description, are both of that kind. The redacted report therefore still
-  deserves the read-before-you-send that any document leaving the organisation
-  gets.
-- Values too short or too ordinary to tell from prose are replaced only where
-  they stand alone. A tag spelled `no`, or one spelled `high`, are of that kind.
-  For the same reason they are outside the scan, because searching for them
-  would report the report itself. So are the words the report writes on its own
-  account. An assessment account called `administrator` is replaced in the cell
-  that names it, while the project role labels the report works out for itself
-  are left as they are.
-- Redaction is only as good as its classes. With `names` off, an object called
-  `payments-prod-dr` says what it says.
-
-`redact_key: PATH` writes the alias-to-real-value mapping as CSV, so a finding
-can be traced back in-house. That file is as sensitive as the estate itself.
-Keep it, and never send it with the report.
-
-The `--json` dump is never redacted. It is the internal record of what was
-collected, and a partially-redacted data dump would be a trap.
-
-### Comparing with an earlier run
-
-Every run is a snapshot. Keep the `--json` dump of each assessment and pass
-the previous one as `--compare`, or as `compare` in the config file. The
-Executive Summary then opens with what moved. It lists findings that appeared,
-findings that were resolved, and findings whose object list grew or shrank,
-with the estate's counts side by side. Objects are matched by the platform's id where it gave
-one, else by name. A dump that is not this tool's, or cannot be read, fails
-the run before it logs in. In a redacted copy the names of objects no longer
-flagged are not printed, because they belong to the earlier run and were never
-learned by this one.
-
-## Authentication
-
-Two flows, both ending in the IaaS bearer token used for every service:
-
-1. `POST /csp/gateway/am/api/login?access_token` takes a username and password,
-   with an optional domain, and returns a refresh token.
-2. `POST /iaas/api/login` exchanges that refresh token for the bearer token.
-
-With `--refresh-token` or `VCF_REFRESH_TOKEN`, step 1 is skipped. The password
-is never a CLI flag and is never read from the config file. It is prompted for,
-hidden, or taken from `VCF_PASSWORD`.
-
-Full org-wide coverage needs Organization Owner plus the Assembler and Service
-Broker admin roles. With less, the tool degrades per area, and the report states
-exactly what could not be collected (SYS-001). Without catalog admin, for
-example, it falls back to the entitlement-scoped item list and says so.
-
-## The report
-
-One HTML file, with no external requests, because mermaid.js is vendored and
-inlined. It can therefore be opened on an air-gapped jump host and attached to
-assessment docs.
-
-The Executive Summary sits up top, with severity tiles and the findings table.
-Per-area inventory tables follow, in the section order above. Affected-object
-lists are collapsed and capped at 500 rows per finding, and the `--json` dump
-has everything.
-
-For a sample built from synthetic test data, run
-`.venv\Scripts\python -m pytest tests/test_report.py`, or see
-`vcf-automation-assessment-report-sample.html` if it is present.
-
-<!-- ste:procedural -->
-
 ## Development
 
 ```powershell
@@ -648,3 +667,25 @@ The code lives under `src/vcf_automation_assessment_tool/`:
 
 Adding a check is one function in the right `checks/` module. Adding a collector
 is one module plus a line in `collectors/__init__.py`.
+
+<!-- ste:descriptive -->
+
+### Local API references
+
+Captured OpenAPI Specification (OAS) documents are optional development
+references. Local copies can be kept under `docs/vcf_automation_oas_specs/`,
+which Git ignores. They are excluded from the repository and are not required
+to install or run the tool. These third-party documents retain their own terms,
+as explained in [NOTICE.md](NOTICE.md).
+
+<!-- ste:descriptive -->
+
+## License
+
+The project's original code and documentation are available under the
+[MIT license](LICENSE). It permits free use, modification and redistribution,
+including commercial use, provided the copyright and permission notices are
+retained. The software is provided without warranty.
+
+Third-party components retain their own license terms. See
+[NOTICE.md](NOTICE.md) for details.
