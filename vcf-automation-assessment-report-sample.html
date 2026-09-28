@@ -1256,13 +1256,17 @@ can order it. Items with no current deployments need an owner review before reti
 of its life it belongs to. Each diagram shows the events in order, the
 subscriptions that react to each, and what each one runs. Items no subscription
 reacts to are listed below the diagrams.</p>
-<p class="sub">Red is a subscription that is switched off, and "(blocking)" marks one that
-pauses the build. A dashed "(conditional)" arrow means the report cannot tell
-whether the subscription runs: its conditions test something it cannot read, or
-the item's template was not found. Machine, network and storage events
-(compute.*, network.*, storage.*) are drawn only for items whose template builds
-those resources. Template design events (blueprint.*) are left out: they fire
-when somebody edits a template, not when somebody orders the item.</p>
+<ul class="notes">
+<li><b>Red:</b> a subscription that is switched off.</li>
+<li><b>"(blocking)":</b> the subscription pauses the build until it finishes.</li>
+<li><b>Dashed "(conditional)" arrow:</b> the report cannot tell whether the
+subscription runs. Its conditions test something the report cannot read, or the
+item's template was not found.</li>
+</ul>
+<p class="sub">Machine, network and storage events (compute.*, network.*, storage.*) are
+drawn only for items whose template builds those resources. Template design
+events (blueprint.*) are left out: they fire when somebody edits a template, not
+when somebody orders the item.</p>
 <details class="inv">
 <summary>Provisioning Flows <span class="count">(3 items)</span></summary>
 <div class="flowwrap">
@@ -2075,12 +2079,16 @@ organization policy as well as its own copy of the same type.</p>
 <div class="flowwrap">
 <p class="sub">Each diagram is one chain of approval gates. A request for the actions in the
 first node stops at every gate shown, in level order, and goes ahead only when
-each gate approves it. A rejection at any gate denies the whole request, shown by
-the dotted lines. If nobody decides in time, the policy's automatic decision
-applies. Mode ANY_OF needs one of the policy's approvers, ALL_OF needs all of
-them. The table above names them, as it names the policies behind a gate that
-reads "N per-project policies". A gate marked "(scope criteria apply)" holds only
-for requests that match conditions this report does not check.</p>
+each gate approves it. If nobody decides in time, the policy's automatic
+decision applies. The table above names each gate's approvers, and the policies
+behind a gate that reads "N per-project policies".</p>
+<ul class="notes">
+<li><b>Dotted lines:</b> a rejection at that gate denies the whole request.</li>
+<li><b>ANY_OF:</b> one of the policy's approvers must approve. <b>ALL_OF:</b>
+all of them must.</li>
+<li><b>"(scope criteria apply)":</b> the gate holds only for requests that match
+conditions this report does not check.</li>
+</ul>
 <p class="sub"><strong>project Platform</strong></p>
 <pre class="mermaid">flowchart LR
 areq_project_Platform_Deployment_Crea_2e0fff07([&#34;request:&lt;br/&gt;Deployment.Create&#34;])

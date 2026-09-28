@@ -14,8 +14,8 @@ and the project follows
 - The sample report now shows a realistic provisioning flow for Web Server:
   five events in lifecycle order, two subscriptions on one event, a conditional
   subscription and a blueprint-scoped one.
-- The Template Placement introduction is shorter, and the placement diagram
-  legend is a bulleted list.
+- The Template Placement introduction is shorter. The placement, catalog flow
+  and approval flow diagram legends are bulleted lists.
 
 ### Fixed
 
