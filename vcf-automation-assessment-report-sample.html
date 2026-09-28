@@ -364,8 +364,8 @@ footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; }
   <div class="g"><b>5</b><span>Machines</span></div>
   <div class="g"><b>3</b><span>Catalog items</span></div>
   <div class="g"><b>3</b><span>Templates</span></div>
-  <div class="g"><b>4</b><span>Subscriptions</span></div>
-  <div class="g"><b>3</b><span>ABX actions</span></div>
+  <div class="g"><b>10</b><span>Subscriptions</span></div>
+  <div class="g"><b>6</b><span>ABX actions</span></div>
   <div class="g"><b>2</b><span>Orchestrator actions</span></div>
   <div class="g"><b>8</b><span>Policies</span></div>
 </div>
@@ -556,7 +556,7 @@ not by itself establish a service outage. Service owners must confirm business i
       <td><span class="badge info">INFO</span>
 </td>
       <td>Subscription conditions tied to ids from this system</td>
-      <td class="num">1</td></tr>
+      <td class="num">2</td></tr>
   <tr data-finding="EXT-006"><td><a href="#EXT-006">EXT-006</a></td>
       <td><span class="badge info">INFO</span>
 </td>
@@ -1282,16 +1282,28 @@ s_ci3_sub2_afc44587[&#34;old-hook (disabled, conditional)&#34;]
 t_ci3_deployment_request_pre_37d5e4b1 -.-&gt; s_ci3_sub2_afc44587
 r_sub2_abx_gone_659bf1fa[/&#34;ABX: abx-gone&#34;/]
 s_ci3_sub2_afc44587 --&gt; r_sub2_abx_gone_659bf1fa
+s_ci3_sub6_4170115f[&#34;validate-web-request (blocking, conditional)&#34;]
+t_ci3_deployment_request_pre_37d5e4b1 -.-&gt; s_ci3_sub6_4170115f
+r_sub6_request_guardrails_cc925764[/&#34;ABX: request-guardrails&#34;/]
+s_ci3_sub6_4170115f --&gt; r_sub6_request_guardrails_cc925764
+t_ci3_deployment_request_post_1a67b543([&#34;deployment.request.post&#34;])
+src_Platform_Templates_1334a24b --&gt; t_ci3_deployment_request_post_1a67b543
+s_ci3_sub11_6414f07f[&#34;close-change-ticket&#34;]
+t_ci3_deployment_request_post_1a67b543 --&gt; s_ci3_sub11_6414f07f
+r_sub11_register_cmdb_c4a3a73f[/&#34;ABX: register-cmdb&#34;/]
+s_ci3_sub11_6414f07f --&gt; r_sub11_register_cmdb_c4a3a73f
 classDef item fill:#2a78d6,color:#ffffff,stroke:#1c5cab
 class ci_ci3_bc7e7d36 item
 classDef source fill:#e8eef7,color:#0b0b0b,stroke:#c3c2b7
 class src_Platform_Templates_1334a24b source
 classDef topic fill:#f0efec,color:#0b0b0b,stroke:#898781
-class t_ci3_deployment_request_pre_37d5e4b1 topic
+class t_ci3_deployment_request_pre_37d5e4b1,t_ci3_deployment_request_post_1a67b543 topic
+classDef sub fill:#ffffff,color:#0b0b0b,stroke:#52514e
+class s_ci3_sub6_4170115f,s_ci3_sub11_6414f07f sub
 classDef disabled fill:#fbe9e9,color:#7a1f1f,stroke:#d03b3b,stroke-width:2px
 class s_ci3_sub2_afc44587 disabled
 classDef run fill:#4a3aa7,color:#ffffff,stroke:#372b80
-class r_sub2_abx_gone_659bf1fa run</pre>
+class r_sub2_abx_gone_659bf1fa,r_sub6_request_guardrails_cc925764,r_sub11_register_cmdb_c4a3a73f run</pre>
 </details>
 <details class="flow">
   <summary>Unused Item
@@ -1308,24 +1320,54 @@ s_ci2_sub2_b358071d[&#34;old-hook (disabled, conditional)&#34;]
 t_ci2_deployment_request_pre_1ab58190 -.-&gt; s_ci2_sub2_b358071d
 r_sub2_abx_gone_659bf1fa[/&#34;ABX: abx-gone&#34;/]
 s_ci2_sub2_b358071d --&gt; r_sub2_abx_gone_659bf1fa
+s_ci2_sub6_1e94cf38[&#34;validate-web-request (blocking, conditional)&#34;]
+t_ci2_deployment_request_pre_1ab58190 -.-&gt; s_ci2_sub6_1e94cf38
+r_sub6_request_guardrails_cc925764[/&#34;ABX: request-guardrails&#34;/]
+s_ci2_sub6_1e94cf38 --&gt; r_sub6_request_guardrails_cc925764
+t_ci2_compute_allocation_pre_76c9e764([&#34;compute.allocation.pre&#34;])
+src_Platform_Templates_1334a24b --&gt; t_ci2_compute_allocation_pre_76c9e764
+s_ci2_sub7_76ed1fc2[&#34;assign-hostname (blocking, conditional)&#34;]
+t_ci2_compute_allocation_pre_76c9e764 -.-&gt; s_ci2_sub7_76ed1fc2
+r_sub7_assign_hostname_669b029d[/&#34;ABX: assign-hostname&#34;/]
+s_ci2_sub7_76ed1fc2 --&gt; r_sub7_assign_hostname_669b029d
+s_ci2_sub8_d568cd0d[&#34;prod-placement-override (blocking, conditional)&#34;]
+t_ci2_compute_allocation_pre_76c9e764 -.-&gt; s_ci2_sub8_d568cd0d
+r_sub8_request_guardrails_9d92b14e[/&#34;ABX: request-guardrails&#34;/]
+s_ci2_sub8_d568cd0d --&gt; r_sub8_request_guardrails_9d92b14e
 t_ci2_compute_provision_post_a3bade01([&#34;compute.provision.post&#34;])
 src_Platform_Templates_1334a24b --&gt; t_ci2_compute_provision_post_a3bade01
 s_ci2_sub1_05a5987a[&#34;add-to-cmdb (blocking, conditional)&#34;]
 t_ci2_compute_provision_post_a3bade01 -.-&gt; s_ci2_sub1_05a5987a
 r_sub1_register_cmdb_0c5a60f5[/&#34;ABX: register-cmdb&#34;/]
 s_ci2_sub1_05a5987a --&gt; r_sub1_register_cmdb_0c5a60f5
+s_ci2_sub10_7f328a48[&#34;register-dns (conditional)&#34;]
+t_ci2_compute_provision_post_a3bade01 -.-&gt; s_ci2_sub10_7f328a48
+r_sub10_ipam_client_3f400451[/&#34;ABX: ipam-client&#34;/]
+s_ci2_sub10_7f328a48 --&gt; r_sub10_ipam_client_3f400451
+t_ci2_network_configure_e866f64f([&#34;network.configure&#34;])
+src_Platform_Templates_1334a24b --&gt; t_ci2_network_configure_e866f64f
+s_ci2_sub9_d70aa5f0[&#34;reserve-ip-address (blocking, conditional)&#34;]
+t_ci2_network_configure_e866f64f -.-&gt; s_ci2_sub9_d70aa5f0
+r_sub9_ipam_client_6384c6d2[/&#34;ABX: ipam-client&#34;/]
+s_ci2_sub9_d70aa5f0 --&gt; r_sub9_ipam_client_6384c6d2
+t_ci2_deployment_request_post_daa07230([&#34;deployment.request.post&#34;])
+src_Platform_Templates_1334a24b --&gt; t_ci2_deployment_request_post_daa07230
+s_ci2_sub11_91714b85[&#34;close-change-ticket&#34;]
+t_ci2_deployment_request_post_daa07230 --&gt; s_ci2_sub11_91714b85
+r_sub11_register_cmdb_c4a3a73f[/&#34;ABX: register-cmdb&#34;/]
+s_ci2_sub11_91714b85 --&gt; r_sub11_register_cmdb_c4a3a73f
 classDef item fill:#2a78d6,color:#ffffff,stroke:#1c5cab
 class ci_ci2_f1c70e17 item
 classDef source fill:#e8eef7,color:#0b0b0b,stroke:#c3c2b7
 class src_Platform_Templates_1334a24b source
 classDef topic fill:#f0efec,color:#0b0b0b,stroke:#898781
-class t_ci2_deployment_request_pre_1ab58190,t_ci2_compute_provision_post_a3bade01 topic
+class t_ci2_deployment_request_pre_1ab58190,t_ci2_compute_allocation_pre_76c9e764,t_ci2_compute_provision_post_a3bade01,t_ci2_network_configure_e866f64f,t_ci2_deployment_request_post_daa07230 topic
 classDef sub fill:#ffffff,color:#0b0b0b,stroke:#52514e
-class s_ci2_sub1_05a5987a sub
+class s_ci2_sub6_1e94cf38,s_ci2_sub7_76ed1fc2,s_ci2_sub8_d568cd0d,s_ci2_sub1_05a5987a,s_ci2_sub10_7f328a48,s_ci2_sub9_d70aa5f0,s_ci2_sub11_91714b85 sub
 classDef disabled fill:#fbe9e9,color:#7a1f1f,stroke:#d03b3b,stroke-width:2px
 class s_ci2_sub2_b358071d disabled
 classDef run fill:#4a3aa7,color:#ffffff,stroke:#372b80
-class r_sub2_abx_gone_659bf1fa,r_sub1_register_cmdb_0c5a60f5 run</pre>
+class r_sub2_abx_gone_659bf1fa,r_sub6_request_guardrails_cc925764,r_sub7_assign_hostname_669b029d,r_sub8_request_guardrails_9d92b14e,r_sub1_register_cmdb_0c5a60f5,r_sub10_ipam_client_3f400451,r_sub9_ipam_client_6384c6d2,r_sub11_register_cmdb_c4a3a73f run</pre>
 </details>
 <details class="flow">
   <summary>Web Server
@@ -1338,12 +1380,44 @@ src_Platform_Templates_1334a24b[&#34;Platform Templates&#34;]
 ci_ci1_d2b2292e --&gt; src_Platform_Templates_1334a24b
 bp_bp1_fd3310a4[&#34;web-server&#34;]
 src_Platform_Templates_1334a24b --&gt; bp_bp1_fd3310a4
+t_ci1_deployment_request_pre_bc408d8b([&#34;deployment.request.pre&#34;])
+bp_bp1_fd3310a4 --&gt; t_ci1_deployment_request_pre_bc408d8b
+s_ci1_sub6_0bb41c3d[&#34;validate-web-request (blocking)&#34;]
+t_ci1_deployment_request_pre_bc408d8b --&gt; s_ci1_sub6_0bb41c3d
+r_sub6_request_guardrails_cc925764[/&#34;ABX: request-guardrails&#34;/]
+s_ci1_sub6_0bb41c3d --&gt; r_sub6_request_guardrails_cc925764
+t_ci1_compute_allocation_pre_78d86e84([&#34;compute.allocation.pre&#34;])
+bp_bp1_fd3310a4 --&gt; t_ci1_compute_allocation_pre_78d86e84
+s_ci1_sub7_093bc045[&#34;assign-hostname (blocking)&#34;]
+t_ci1_compute_allocation_pre_78d86e84 --&gt; s_ci1_sub7_093bc045
+r_sub7_assign_hostname_669b029d[/&#34;ABX: assign-hostname&#34;/]
+s_ci1_sub7_093bc045 --&gt; r_sub7_assign_hostname_669b029d
+s_ci1_sub8_ff88a686[&#34;prod-placement-override (blocking, conditional)&#34;]
+t_ci1_compute_allocation_pre_78d86e84 -.-&gt; s_ci1_sub8_ff88a686
+r_sub8_request_guardrails_9d92b14e[/&#34;ABX: request-guardrails&#34;/]
+s_ci1_sub8_ff88a686 --&gt; r_sub8_request_guardrails_9d92b14e
 t_ci1_compute_provision_post_e401942e([&#34;compute.provision.post&#34;])
 bp_bp1_fd3310a4 --&gt; t_ci1_compute_provision_post_e401942e
 s_ci1_sub1_c67ba8b2[&#34;add-to-cmdb (blocking)&#34;]
 t_ci1_compute_provision_post_e401942e --&gt; s_ci1_sub1_c67ba8b2
 r_sub1_register_cmdb_0c5a60f5[/&#34;ABX: register-cmdb&#34;/]
 s_ci1_sub1_c67ba8b2 --&gt; r_sub1_register_cmdb_0c5a60f5
+s_ci1_sub10_2130df50[&#34;register-dns&#34;]
+t_ci1_compute_provision_post_e401942e --&gt; s_ci1_sub10_2130df50
+r_sub10_ipam_client_3f400451[/&#34;ABX: ipam-client&#34;/]
+s_ci1_sub10_2130df50 --&gt; r_sub10_ipam_client_3f400451
+t_ci1_network_configure_12b62dbe([&#34;network.configure&#34;])
+bp_bp1_fd3310a4 --&gt; t_ci1_network_configure_12b62dbe
+s_ci1_sub9_7806e20e[&#34;reserve-ip-address (blocking)&#34;]
+t_ci1_network_configure_12b62dbe --&gt; s_ci1_sub9_7806e20e
+r_sub9_ipam_client_6384c6d2[/&#34;ABX: ipam-client&#34;/]
+s_ci1_sub9_7806e20e --&gt; r_sub9_ipam_client_6384c6d2
+t_ci1_deployment_request_post_5398a965([&#34;deployment.request.post&#34;])
+bp_bp1_fd3310a4 --&gt; t_ci1_deployment_request_post_5398a965
+s_ci1_sub11_6e0ad2be[&#34;close-change-ticket&#34;]
+t_ci1_deployment_request_post_5398a965 --&gt; s_ci1_sub11_6e0ad2be
+r_sub11_register_cmdb_c4a3a73f[/&#34;ABX: register-cmdb&#34;/]
+s_ci1_sub11_6e0ad2be --&gt; r_sub11_register_cmdb_c4a3a73f
 classDef item fill:#2a78d6,color:#ffffff,stroke:#1c5cab
 class ci_ci1_d2b2292e item
 classDef source fill:#e8eef7,color:#0b0b0b,stroke:#c3c2b7
@@ -1351,11 +1425,11 @@ class src_Platform_Templates_1334a24b source
 classDef bp fill:#1baf7a,color:#ffffff,stroke:#0e8a5e
 class bp_bp1_fd3310a4 bp
 classDef topic fill:#f0efec,color:#0b0b0b,stroke:#898781
-class t_ci1_compute_provision_post_e401942e topic
+class t_ci1_deployment_request_pre_bc408d8b,t_ci1_compute_allocation_pre_78d86e84,t_ci1_compute_provision_post_e401942e,t_ci1_network_configure_12b62dbe,t_ci1_deployment_request_post_5398a965 topic
 classDef sub fill:#ffffff,color:#0b0b0b,stroke:#52514e
-class s_ci1_sub1_c67ba8b2 sub
+class s_ci1_sub6_0bb41c3d,s_ci1_sub7_093bc045,s_ci1_sub8_ff88a686,s_ci1_sub1_c67ba8b2,s_ci1_sub10_2130df50,s_ci1_sub9_7806e20e,s_ci1_sub11_6e0ad2be sub
 classDef run fill:#4a3aa7,color:#ffffff,stroke:#372b80
-class r_sub1_register_cmdb_0c5a60f5 run</pre>
+class r_sub6_request_guardrails_cc925764,r_sub7_assign_hostname_669b029d,r_sub8_request_guardrails_9d92b14e,r_sub1_register_cmdb_0c5a60f5,r_sub10_ipam_client_3f400451,r_sub9_ipam_client_6384c6d2,r_sub11_register_cmdb_c4a3a73f run</pre>
 </details>
 </div>
 </details>
@@ -2457,11 +2531,23 @@ about to be built", run a chosen script or workflow. A <em>blocking</em>
 subscription pauses the build until its work finishes. A <em>disabled</em> one
 never runs.</p>
 <details class="inv">
-<summary>Event Subscriptions <span class="count">(4)</span></summary>
+<summary>Event Subscriptions <span class="count">(10)</span></summary>
 <div class="tablewrap"><table class="subs">
   <tr><th>Name</th><th>Topic</th><th>Blocking</th><th>Disabled</th><th>Scope</th><th>What it runs</th><th>Conditions</th></tr>
   <tr><td>add-to-cmdb</td><td><code>compute.provision.post</code></td>
       <td><strong>yes</strong></td>
+      <td>no</td>
+      <td>global</td>
+      <td>abx: register-cmdb</td>
+      <td class="crit"></td></tr>
+  <tr><td>assign-hostname</td><td><code>compute.allocation.pre</code></td>
+      <td><strong>yes</strong></td>
+      <td>no</td>
+      <td>global</td>
+      <td>abx: assign-hostname</td>
+      <td class="crit"></td></tr>
+  <tr><td>close-change-ticket</td><td><code>deployment.request.post</code></td>
+      <td>no</td>
       <td>no</td>
       <td>global</td>
       <td>abx: register-cmdb</td>
@@ -2478,12 +2564,36 @@ never runs.</p>
       <td>blueprint</td>
       <td>abx: abx-gone</td>
       <td class="crit"><code>event.data.blueprintId == &#39;bp-gone&#39;</code><div class="sub">blueprint: (unknown blueprint bp-gone)</div></td></tr>
+  <tr><td>prod-placement-override</td><td><code>compute.allocation.pre</code></td>
+      <td><strong>yes</strong></td>
+      <td>no</td>
+      <td>conditional</td>
+      <td>abx: request-guardrails</td>
+      <td class="crit"><code>event.data.customProperties[&#39;env&#39;] == &#39;prod&#39;</code></td></tr>
+  <tr><td>register-dns</td><td><code>compute.provision.post</code></td>
+      <td>no</td>
+      <td>no</td>
+      <td>global</td>
+      <td>abx: ipam-client</td>
+      <td class="crit"></td></tr>
   <tr><td>release-addresses</td><td><code>compute.removal.post</code></td>
       <td>no</td>
       <td>no</td>
       <td>global</td>
       <td>abx: register-cmdb</td>
       <td class="crit"></td></tr>
+  <tr><td>reserve-ip-address</td><td><code>network.configure</code></td>
+      <td><strong>yes</strong></td>
+      <td>no</td>
+      <td>global</td>
+      <td>abx: ipam-client</td>
+      <td class="crit"></td></tr>
+  <tr><td>validate-web-request</td><td><code>deployment.request.pre</code></td>
+      <td><strong>yes</strong></td>
+      <td>no</td>
+      <td>blueprint</td>
+      <td>abx: request-guardrails</td>
+      <td class="crit"><code>event.data.blueprintId == &#39;bp1&#39;</code><div class="sub">blueprint: &#39;web-server&#39;</div></td></tr>
 </table></div>
 </details>
 
@@ -2557,9 +2667,9 @@ flagged.</p>
 each one for quality signals and rates how complex it is. An action should stay
 short, so HIGH means it has grown into something bigger.</p>
 <details class="inv">
-<summary>ABX Actions Inventory <span class="count">(3)</span></summary>
+<summary>ABX Actions Inventory <span class="count">(6)</span></summary>
 <p class="sub">Last run comes from a lookup for each action against the run history the
-platform keeps (3 recorded runs across these
+platform keeps (12 recorded runs across these
 actions).
  "none recorded" means the platform holds no run
 for that action. It deletes old runs, so this is not proof the action never ran.
@@ -2571,6 +2681,20 @@ an action whose most recent run could not be put in a verified order.
 </p>
 <div class="tablewrap"><table>
   <tr><th>Name</th><th>Project</th><th>Language</th><th>Complexity</th><th>Last run</th><th class="num">Comments</th><th>Error handling</th><th class="num">Quality signals</th></tr>
+  <tr><td>assign-hostname</td>
+      <td>Platform</td>
+      <td>python</td>
+      <td>LOW</td>
+<td>2026-07-16 (COMPLETED)</td>      <td class="num"></td>
+      <td>yes</td>
+      <td class="num">0</td></tr>
+  <tr><td>ipam-client</td>
+      <td>Platform</td>
+      <td>python</td>
+      <td>LOW</td>
+<td>2026-07-16 (COMPLETED)</td>      <td class="num"></td>
+      <td>yes</td>
+      <td class="num">0</td></tr>
   <tr><td>legacy-dns-update</td>
       <td>Platform</td>
       <td>python</td>
@@ -2579,6 +2703,13 @@ an action whose most recent run could not be put in a verified order.
       <td>no</td>
       <td class="num">3</td></tr>
   <tr><td>register-cmdb</td>
+      <td>Platform</td>
+      <td>python</td>
+      <td>LOW</td>
+<td>2026-07-16 (COMPLETED)</td>      <td class="num"></td>
+      <td>yes</td>
+      <td class="num">0</td></tr>
+  <tr><td>request-guardrails</td>
       <td>Platform</td>
       <td>python</td>
       <td>LOW</td>
@@ -2716,7 +2847,7 @@ an action whose most recent run could not be put in a verified order.
 <div class="finding info" id="EXT-005" data-severity="info" data-evidence="Review candidate" data-projects='[]'>
   <div><strong>EXT-005</strong> &nbsp;<span class="badge info">INFO</span>
  &nbsp;
-       <strong>Subscription conditions tied to ids from this system</strong> &nbsp;<span class="sub">(1 affected)</span></div>
+       <strong>Subscription conditions tied to ids from this system</strong> &nbsp;<span class="sub">(2 affected)</span></div>
   <div class="finding-context"><span><b>Evidence:</b> Review candidate</span><span><b>Suggested priority:</b> Owner review</span></div>
   <p><b>Why it matters:</b> Confirm whether this configuration is intentional and still needed before changing it.</p>
   <div class="rec"><b>Recommended action:</b> Replace fixed template or project IDs with stable event properties where possible.</div>
@@ -2728,11 +2859,12 @@ an action whose most recent run could not be put in a verified order.
 
   <p class="rec"><b>Verify:</b> Record the owner&#39;s decision and any accepted exception; a review candidate need not be removed.</p>
   <details>
-    <summary>Show 1 of 1 affected object</summary>
+    <summary>Show 2 of 2 affected objects</summary>
     <div class="tablewrap">
     <table class="affected">
       <tr><th>Name</th><th>Detail</th></tr>
       <tr><td class="obj">old-hook</td><td class="detail">blueprint: (unknown blueprint bp-gone)</td></tr>
+      <tr><td class="obj">validate-web-request</td><td class="detail">blueprint: &#39;web-server&#39;</td></tr>
     </table>
     </div>
   </details>
@@ -2836,11 +2968,11 @@ Needs review. Workflow internals and packaged ABX code are not assessed.</p>
       <td>Terraform variables or AAP survey choices.</td>
       <td class="sub">Preserve size names and validate CPU/memory mappings.</td></tr>
   <tr><td><strong>Lifecycle extensibility (event subscriptions)</strong></td>
-      <td>4 custom subscription(s): 4 ABX, 0 Orchestrator</td>
+      <td>10 custom subscription(s): 10 ABX, 0 Orchestrator</td>
       <td>GitLab stages for pipeline hooks; Event-Driven Ansible for external events.</td>
       <td class="sub">Preserve blocking behaviour, event timing and failure handling.</td></tr>
   <tr><td><strong>ABX actions (serverless scripts)</strong></td>
-      <td>3 action(s), runtimes: python</td>
+      <td>6 action(s), runtimes: python</td>
       <td>GitLab CI jobs or AAP job templates.        <details><summary>Alternatives</summary>OpenShift Jobs/Knative functions</details></td>
       <td class="sub">Review dependencies, credentials and packaged code before assuming portability.</td></tr>
   <tr><td><strong>Approvals</strong></td>

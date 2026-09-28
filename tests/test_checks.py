@@ -179,9 +179,10 @@ def test_full_check_run(sample_data):
     assert f.severity is Severity.WARNING
 
     # EXT-005: criteria pinned to a literal blueprint id, resolved against the
-    # collected blueprints - bp-gone is absent, so the label says unknown
+    # collected blueprints - bp-gone is absent, so the label says unknown;
+    # validate-web-request names bp1, which resolves
     f = get(findings, "EXT-005")
-    assert [a.name for a in f.affected] == ["old-hook"]
+    assert [a.name for a in f.affected] == ["old-hook", "validate-web-request"]
     assert f.affected[0].detail == "blueprint: (unknown blueprint bp-gone)"
     assert f.severity is Severity.INFO
 
@@ -256,7 +257,7 @@ def test_full_check_run(sample_data):
     assert len(f.affected) == 3
     web = next(a for a in f.affected if a.name == "Web Server")
     assert "difficulty=MEDIUM" in web.detail
-    assert "hooks: 3 ABX, 0 Orchestrator" in web.detail
+    assert "hooks: 9 ABX, 0 Orchestrator" in web.detail
     assert "Terraform" in web.detail
 
     # REP-002: UI-authored template flagged; git-sourced one not

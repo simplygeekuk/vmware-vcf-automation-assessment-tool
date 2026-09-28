@@ -20,11 +20,11 @@ def test_map_reflects_fixture_usage(sample_data):
     assert "3 catalog item(s)" in catalog["evidence"]
 
     ext = rows["Lifecycle extensibility (event subscriptions)"]
-    # Built-in Quota enforcement excluded: 4 custom subs, all ABX.
-    assert "4 custom subscription(s): 4 ABX, 0 Orchestrator" in ext["evidence"]
+    # Built-in Quota enforcement excluded: 10 custom subs, all ABX.
+    assert "10 custom subscription(s): 10 ABX, 0 Orchestrator" in ext["evidence"]
 
     abx = rows["ABX actions (serverless scripts)"]
-    assert "3 action(s)" in abx["evidence"] and "python" in abx["evidence"]
+    assert "6 action(s)" in abx["evidence"] and "python" in abx["evidence"]
 
     approvals = rows["Approvals"]
     assert "1 approval polic(ies)" in approvals["evidence"]

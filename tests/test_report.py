@@ -1022,7 +1022,7 @@ def test_a_named_event_type_moves_the_subscription_out_of_request(sample_data, t
     provisioning = html[
         html.index("<summary>Provisioning Flows") : html.index("<summary>Day 2 Change Flows")
     ]
-    assert "deployment.request.pre" not in provisioning
+    assert "old-hook" not in provisioning
     assert "Unplaced Request Flows" not in html
 
 

@@ -9,6 +9,12 @@ and the project follows
 
 ## [Unreleased]
 
+### Changed
+
+- The sample report now shows a realistic provisioning flow for Web Server:
+  six events in lifecycle order, two subscriptions on one event, a conditional
+  subscription and a blueprint-scoped one.
+
 ## [1.0.0] - 2026-09-23
 
 First stable release.
