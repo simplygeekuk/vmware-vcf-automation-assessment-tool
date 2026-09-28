@@ -17,9 +17,11 @@ TOPIC_ORDER = [
     "compute.allocation.pre",
     "network.allocation.pre",
     "storage.allocation.pre",
+    # Fires once placement has chosen the network and host, before the
+    # machine is provisioned: where static IPs are assigned.
+    "network.configure",
     "compute.provision.pre",
     "compute.provision.post",
-    "network.configure",
     "compute.post.provision",
     "deployment.resource.action.request.pre",
     "deployment.resource.action.pre",

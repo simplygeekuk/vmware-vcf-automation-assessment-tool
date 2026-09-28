@@ -1334,6 +1334,12 @@ s_ci2_sub8_d568cd0d[&#34;prod-placement-override (blocking, conditional)&#34;]
 t_ci2_compute_allocation_pre_76c9e764 -.-&gt; s_ci2_sub8_d568cd0d
 r_sub8_request_guardrails_9d92b14e[/&#34;ABX: request-guardrails&#34;/]
 s_ci2_sub8_d568cd0d --&gt; r_sub8_request_guardrails_9d92b14e
+t_ci2_network_configure_e866f64f([&#34;network.configure&#34;])
+src_Platform_Templates_1334a24b --&gt; t_ci2_network_configure_e866f64f
+s_ci2_sub9_d70aa5f0[&#34;reserve-ip-address (blocking, conditional)&#34;]
+t_ci2_network_configure_e866f64f -.-&gt; s_ci2_sub9_d70aa5f0
+r_sub9_ipam_client_6384c6d2[/&#34;ABX: ipam-client&#34;/]
+s_ci2_sub9_d70aa5f0 --&gt; r_sub9_ipam_client_6384c6d2
 t_ci2_compute_provision_post_a3bade01([&#34;compute.provision.post&#34;])
 src_Platform_Templates_1334a24b --&gt; t_ci2_compute_provision_post_a3bade01
 s_ci2_sub1_05a5987a[&#34;add-to-cmdb (blocking, conditional)&#34;]
@@ -1344,12 +1350,6 @@ s_ci2_sub10_7f328a48[&#34;register-dns (conditional)&#34;]
 t_ci2_compute_provision_post_a3bade01 -.-&gt; s_ci2_sub10_7f328a48
 r_sub10_ipam_client_3f400451[/&#34;ABX: ipam-client&#34;/]
 s_ci2_sub10_7f328a48 --&gt; r_sub10_ipam_client_3f400451
-t_ci2_network_configure_e866f64f([&#34;network.configure&#34;])
-src_Platform_Templates_1334a24b --&gt; t_ci2_network_configure_e866f64f
-s_ci2_sub9_d70aa5f0[&#34;reserve-ip-address (blocking, conditional)&#34;]
-t_ci2_network_configure_e866f64f -.-&gt; s_ci2_sub9_d70aa5f0
-r_sub9_ipam_client_6384c6d2[/&#34;ABX: ipam-client&#34;/]
-s_ci2_sub9_d70aa5f0 --&gt; r_sub9_ipam_client_6384c6d2
 t_ci2_deployment_request_post_daa07230([&#34;deployment.request.post&#34;])
 src_Platform_Templates_1334a24b --&gt; t_ci2_deployment_request_post_daa07230
 s_ci2_sub11_91714b85[&#34;close-change-ticket&#34;]
@@ -1361,13 +1361,13 @@ class ci_ci2_f1c70e17 item
 classDef source fill:#e8eef7,color:#0b0b0b,stroke:#c3c2b7
 class src_Platform_Templates_1334a24b source
 classDef topic fill:#f0efec,color:#0b0b0b,stroke:#898781
-class t_ci2_deployment_request_pre_1ab58190,t_ci2_compute_allocation_pre_76c9e764,t_ci2_compute_provision_post_a3bade01,t_ci2_network_configure_e866f64f,t_ci2_deployment_request_post_daa07230 topic
+class t_ci2_deployment_request_pre_1ab58190,t_ci2_compute_allocation_pre_76c9e764,t_ci2_network_configure_e866f64f,t_ci2_compute_provision_post_a3bade01,t_ci2_deployment_request_post_daa07230 topic
 classDef sub fill:#ffffff,color:#0b0b0b,stroke:#52514e
-class s_ci2_sub6_1e94cf38,s_ci2_sub7_76ed1fc2,s_ci2_sub8_d568cd0d,s_ci2_sub1_05a5987a,s_ci2_sub10_7f328a48,s_ci2_sub9_d70aa5f0,s_ci2_sub11_91714b85 sub
+class s_ci2_sub6_1e94cf38,s_ci2_sub7_76ed1fc2,s_ci2_sub8_d568cd0d,s_ci2_sub9_d70aa5f0,s_ci2_sub1_05a5987a,s_ci2_sub10_7f328a48,s_ci2_sub11_91714b85 sub
 classDef disabled fill:#fbe9e9,color:#7a1f1f,stroke:#d03b3b,stroke-width:2px
 class s_ci2_sub2_b358071d disabled
 classDef run fill:#4a3aa7,color:#ffffff,stroke:#372b80
-class r_sub2_abx_gone_659bf1fa,r_sub6_request_guardrails_cc925764,r_sub7_assign_hostname_669b029d,r_sub8_request_guardrails_9d92b14e,r_sub1_register_cmdb_0c5a60f5,r_sub10_ipam_client_3f400451,r_sub9_ipam_client_6384c6d2,r_sub11_register_cmdb_c4a3a73f run</pre>
+class r_sub2_abx_gone_659bf1fa,r_sub6_request_guardrails_cc925764,r_sub7_assign_hostname_669b029d,r_sub8_request_guardrails_9d92b14e,r_sub9_ipam_client_6384c6d2,r_sub1_register_cmdb_0c5a60f5,r_sub10_ipam_client_3f400451,r_sub11_register_cmdb_c4a3a73f run</pre>
 </details>
 <details class="flow">
   <summary>Web Server
@@ -1396,6 +1396,12 @@ s_ci1_sub8_ff88a686[&#34;prod-placement-override (blocking, conditional)&#34;]
 t_ci1_compute_allocation_pre_78d86e84 -.-&gt; s_ci1_sub8_ff88a686
 r_sub8_request_guardrails_9d92b14e[/&#34;ABX: request-guardrails&#34;/]
 s_ci1_sub8_ff88a686 --&gt; r_sub8_request_guardrails_9d92b14e
+t_ci1_network_configure_12b62dbe([&#34;network.configure&#34;])
+bp_bp1_fd3310a4 --&gt; t_ci1_network_configure_12b62dbe
+s_ci1_sub9_7806e20e[&#34;reserve-ip-address (blocking)&#34;]
+t_ci1_network_configure_12b62dbe --&gt; s_ci1_sub9_7806e20e
+r_sub9_ipam_client_6384c6d2[/&#34;ABX: ipam-client&#34;/]
+s_ci1_sub9_7806e20e --&gt; r_sub9_ipam_client_6384c6d2
 t_ci1_compute_provision_post_e401942e([&#34;compute.provision.post&#34;])
 bp_bp1_fd3310a4 --&gt; t_ci1_compute_provision_post_e401942e
 s_ci1_sub1_c67ba8b2[&#34;add-to-cmdb (blocking)&#34;]
@@ -1406,12 +1412,6 @@ s_ci1_sub10_2130df50[&#34;register-dns&#34;]
 t_ci1_compute_provision_post_e401942e --&gt; s_ci1_sub10_2130df50
 r_sub10_ipam_client_3f400451[/&#34;ABX: ipam-client&#34;/]
 s_ci1_sub10_2130df50 --&gt; r_sub10_ipam_client_3f400451
-t_ci1_network_configure_12b62dbe([&#34;network.configure&#34;])
-bp_bp1_fd3310a4 --&gt; t_ci1_network_configure_12b62dbe
-s_ci1_sub9_7806e20e[&#34;reserve-ip-address (blocking)&#34;]
-t_ci1_network_configure_12b62dbe --&gt; s_ci1_sub9_7806e20e
-r_sub9_ipam_client_6384c6d2[/&#34;ABX: ipam-client&#34;/]
-s_ci1_sub9_7806e20e --&gt; r_sub9_ipam_client_6384c6d2
 t_ci1_deployment_request_post_5398a965([&#34;deployment.request.post&#34;])
 bp_bp1_fd3310a4 --&gt; t_ci1_deployment_request_post_5398a965
 s_ci1_sub11_6e0ad2be[&#34;close-change-ticket&#34;]
@@ -1425,11 +1425,11 @@ class src_Platform_Templates_1334a24b source
 classDef bp fill:#1baf7a,color:#ffffff,stroke:#0e8a5e
 class bp_bp1_fd3310a4 bp
 classDef topic fill:#f0efec,color:#0b0b0b,stroke:#898781
-class t_ci1_deployment_request_pre_bc408d8b,t_ci1_compute_allocation_pre_78d86e84,t_ci1_compute_provision_post_e401942e,t_ci1_network_configure_12b62dbe,t_ci1_deployment_request_post_5398a965 topic
+class t_ci1_deployment_request_pre_bc408d8b,t_ci1_compute_allocation_pre_78d86e84,t_ci1_network_configure_12b62dbe,t_ci1_compute_provision_post_e401942e,t_ci1_deployment_request_post_5398a965 topic
 classDef sub fill:#ffffff,color:#0b0b0b,stroke:#52514e
-class s_ci1_sub6_0bb41c3d,s_ci1_sub7_093bc045,s_ci1_sub8_ff88a686,s_ci1_sub1_c67ba8b2,s_ci1_sub10_2130df50,s_ci1_sub9_7806e20e,s_ci1_sub11_6e0ad2be sub
+class s_ci1_sub6_0bb41c3d,s_ci1_sub7_093bc045,s_ci1_sub8_ff88a686,s_ci1_sub9_7806e20e,s_ci1_sub1_c67ba8b2,s_ci1_sub10_2130df50,s_ci1_sub11_6e0ad2be sub
 classDef run fill:#4a3aa7,color:#ffffff,stroke:#372b80
-class r_sub6_request_guardrails_cc925764,r_sub7_assign_hostname_669b029d,r_sub8_request_guardrails_9d92b14e,r_sub1_register_cmdb_0c5a60f5,r_sub10_ipam_client_3f400451,r_sub9_ipam_client_6384c6d2,r_sub11_register_cmdb_c4a3a73f run</pre>
+class r_sub6_request_guardrails_cc925764,r_sub7_assign_hostname_669b029d,r_sub8_request_guardrails_9d92b14e,r_sub9_ipam_client_6384c6d2,r_sub1_register_cmdb_0c5a60f5,r_sub10_ipam_client_3f400451,r_sub11_register_cmdb_c4a3a73f run</pre>
 </details>
 </div>
 </details>

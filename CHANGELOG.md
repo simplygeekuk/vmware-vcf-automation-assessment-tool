@@ -15,6 +15,12 @@ and the project follows
   five events in lifecycle order, two subscriptions on one event, a conditional
   subscription and a blueprint-scoped one.
 
+### Fixed
+
+- Catalog flow diagrams draw `network.configure` after allocation and before
+  the machine is provisioned, where the platform fires it. It was drawn after
+  `compute.provision.post`.
+
 ## [1.0.0] - 2026-09-23
 
 First stable release.

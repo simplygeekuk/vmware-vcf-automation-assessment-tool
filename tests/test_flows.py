@@ -383,6 +383,17 @@ def test_disjunction_across_both_fields_blocks_the_exclusion():
     assert matched_subs(data)["Linux VM"] == [("guard", "unverified")]
 
 
+def test_network_configure_sorts_between_allocation_and_provision():
+    from vcf_automation_assessment_tool.flows import topic_sort_key
+
+    topics = ["compute.provision.post", "network.configure", "compute.allocation.pre"]
+    assert sorted(topics, key=topic_sort_key) == [
+        "compute.allocation.pre",
+        "network.configure",
+        "compute.provision.post",
+    ]
+
+
 def test_topic_concern_map():
     from vcf_automation_assessment_tool.flows import topic_concern
 
