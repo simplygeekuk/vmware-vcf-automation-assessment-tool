@@ -186,9 +186,10 @@ def test_full_check_run(sample_data):
     assert f.affected[0].detail == "blueprint: (unknown blueprint bp-gone)"
     assert f.severity is Severity.INFO
 
-    # EXT-006: run history complete; register-cmdb has runs, the other two
-    # actions have none and nothing references them. The fixture's oldest
-    # retained record dates the floor of the window the claims cover.
+    # EXT-006: run history complete; legacy-dns-update and
+    # vm-lifecycle-orchestrator have no runs and nothing references them. The
+    # fixture's oldest retained record dates the floor of the window the
+    # claims cover.
     f = get(findings, "EXT-006")
     assert f.severity is Severity.INFO
     assert [a.name for a in f.affected] == ["legacy-dns-update", "vm-lifecycle-orchestrator"]
