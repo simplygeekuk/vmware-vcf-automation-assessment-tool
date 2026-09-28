@@ -1,6 +1,6 @@
 # vcf-automation-assessment-tool
 
-Version **1.0.0** is the first stable release. See the
+Version **1.0.1** is the current stable release. See the
 [changelog](CHANGELOG.md) for release details.
 
 VCF Automation Assessment Tool for VMware VCF Automation 8.x. It interrogates

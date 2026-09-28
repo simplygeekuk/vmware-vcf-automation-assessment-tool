@@ -9,6 +9,8 @@ and the project follows
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-28
+
 ### Changed
 
 - The sample report now shows a realistic provisioning flow for Web Server:
