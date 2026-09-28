@@ -2336,40 +2336,30 @@ and day-2 actions the platform team has added.</p>
 </table></div>
 </details>
 <h4>Template Placement</h4>
-<p class="sub">Where each template can actually be built. The resources in a template ask for
-capability tags, which the platform calls a constraint. The platform matches
-those against the tags on cloud zones, profiles and compute resources, and a resource can
-only be built where every hard constraint is met. Only the places the projects
-that can request the template are able to reach are counted, because that is
-where its requests are placed. A diagram is drawn for the
-templates where that is worth a look: one asks for something nothing offers, or
-something only one place offers.</p>
+<p class="sub">Where each template can be built. A resource is built only where a cloud
+zone, profile or compute resource meets every hard constraint (capability tag)
+it asks for. Only places reachable from the projects that can request the
+template count. A diagram is drawn where a constraint matches nothing, or only
+one place.</p>
 <details class="inv">
 <summary>Placement Diagrams <span class="count">(1 template)</span></summary>
 <div class="flowwrap">
-<p class="sub">Red is a hard constraint that nothing satisfies: every build of that resource
-fails, and TAG-001 reports it as well. Yellow is a constraint that one place
-satisfies. The constraint can currently be satisfied, but that zone, profile or compute resource is a
-single point of failure for the template. The grey dashed shapes are the two
-cases that are neither: a soft constraint that matches nothing, which the
-platform ignores rather than fails, and a constraint the platform fills in from
-an answer given at request time. That one names what decides it rather than the
-expression behind it, and where the tags the answer can produce are written
-down, either in the template or in the values the request form offers for the
-input it reads, each hangs off it on a dotted arrow with what it would match, so
-an answer that leads nowhere is visible without the report knowing which answer
-a request gives. Where the form fills that list by running an Orchestrator
-action, the node names the action: this report reads, so it does not run it to
-find out. A place that several constraints share is drawn once,
-so arrows that meet at one shape show that they all depend on it. Where a
-resource carries more than one constraint, dotted arrows marked "together" lead
-to what satisfies all of them at once, which is what the platform needs: red
-where nothing does, and yellow where exactly one place does. A grey shape on
-a dotted arrow is not a place at all. It counts the projects that add the same tag
-through their own network or storage constraints, which is one more condition to
-meet rather than somewhere to build.
- Templates not drawn: 2 declare no constraint tags at all, so nothing narrows where they land.</p>
-<details class="flow">
+<ul class="notes">
+<li><b>Red:</b> a hard constraint nothing satisfies, so every build fails (TAG-001).</li>
+<li><b>Yellow:</b> only one place satisfies it, a single point of failure.</li>
+<li><b>Grey dashed:</b> a soft constraint that matches nothing, which the platform
+ignores, or a constraint decided at request time.</li>
+<li><b>Dotted arrows</b> from a request-time constraint show each answer the
+template or form offers and what it matches. Where an Orchestrator action
+supplies the answers, the node names the action, because this report does not
+run it.</li>
+<li><b>"together"</b> arrows lead to what satisfies all of a resource's
+constraints at once.</li>
+<li><b>Grey shape on a dotted arrow:</b> the projects that add the same tag
+through their own network or storage constraints.</li>
+<li>A place shared by several constraints is drawn once.</li>
+</ul>
+<p class="sub">Templates not drawn: 2 declare no constraint tags at all, so nothing narrows where they land.</p><details class="flow">
   <summary>web-server
     <span class="fmeta"> - Platform | requestable from 2 projects | 3 unsatisfied | 1 with one place only</span>
   </summary>
